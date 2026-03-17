@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Figma Specification — Developer Handoff</title>
+  <link rel="stylesheet" href="../design/design-tokens.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+    body {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #111827;
+      background: #F3F4F6;
+    }
+
+    .spec-page { max-width: 1200px; margin: 0 auto; padding: 48px 40px; }
+
+    .spec-header {
+      background: #0D2137;
+      border-radius: 12px;
+      padding: 40px 48px;
+      color: white;
+      margin-bottom: 48px;
+    }
+
+    .spec-header h1 { font-size: 28px; font-weight: 700; color: white; margin-bottom: 8px; }
+    .spec-header p  { font-size: 14px; color: rgba(255,255,255,0.65); max-width: 600px; }
+
+    h2 { font-size: 20px; font-weight: 700; color: #111827; margin: 40px 0 20px; border-bottom: 2px solid #1F4E79; padding-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+    h2 .num { width: 26px; height: 26px; background: #1F4E79; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+
+    h3 { font-size: 15px; font-weight: 600; color: #374151; margin: 24px 0 12px; }
+
+    .spec-card { background: white; border-radius: 8px; padding: 28px 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.12); margin-bottom: 24px; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { padding: 10px 16px; background: #F9FAFB; text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: #6B7280; border-bottom: 1px solid #E5E7EB; }
+    td { padding: 12px 16px; border-bottom: 1px solid #E5E7EB; vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    tr:nth-child(even) td { background: #FAFAFA; }
+
+    code { font-family: monospace; font-size: 11px; background: #F3F4F6; padding: 2px 6px; border-radius: 4px; color: #1F4E79; }
+    pre { background: #1F2937; color: #E5E7EB; padding: 20px 24px; border-radius: 8px; font-size: 12px; font-family: monospace; overflow-x: auto; line-height: 1.6; margin: 12px 0; }
+
+    .tag { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 600; }
+    .tag-p0 { background: #FEE2E2; color: #DC2626; }
+    .tag-p1 { background: #FEF3C7; color: #D97706; }
+    .tag-p2 { background: #DCFCE7; color: #16A34A; }
+    .tag-done { background: #DDEEFF; color: #1F4E79; }
+
+    ul { padding-left: 20px; }
+    li { margin-bottom: 6px; font-size: 13px; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+
+    .note {
+      background: #F0F7FF; border-left: 4px solid #2E6DA4;
+      border-radius: 0 6px 6px 0; padding: 12px 16px;
+      font-size: 13px; color: #374151; margin: 16px 0;
+    }
+    .note strong { color: #1F4E79; }
+  </style>
+</head>
+<body>
+<div class="spec-page">
+
+  <!-- ── Header ─────────────────────────────────────────────────────────── -->
+  <div class="spec-header">
+    <h1>Figma Design Specification — Developer Handoff</h1>
+    <p>Complete specifications for implementing the Logistics Barycenter Platform UI. All measurements, tokens, interactions, and component states documented.</p>
+    <div style="margin-top:24px; display:flex; gap:24px; font-size:12px;">
+      <div><div style="color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:4px;">Version</div><div style="color:rgba(255,255,255,0.9); font-weight:600;">1.0.0</div></div>
+      <div><div style="color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:4px;">Framework</div><div style="color:rgba(255,255,255,0.9); font-weight:600;">Angular 17 (Standalone)</div></div>
+      <div><div style="color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:4px;">Map Library</div><div style="color:rgba(255,255,255,0.9); font-weight:600;">Leaflet 1.9.4</div></div>
+      <div><div style="color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:4px;">Icons</div><div style="color:rgba(255,255,255,0.9); font-weight:600;">Material Icons</div></div>
+      <div><div style="color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:4px;">Accessibility</div><div style="color:rgba(255,255,255,0.9); font-weight:600;">WCAG 2.1 AA</div></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════ 1. FIGMA STRUCTURE -->
+  <h2><span class="num">1</span> Recommended Figma File Structure</h2>
+  <div class="spec-card">
+    <p style="margin-bottom:20px; color:#6B7280;">Organize the Figma file into these pages for maximum team efficiency:</p>
+    <table>
+      <thead>
+        <tr><th>Page Name</th><th>Contents</th><th>Purpose</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>🎨 Design System</code></td>
+          <td>Color styles, text styles, effect styles, variable collections</td>
+          <td>Single source of truth for all tokens</td>
+        </tr>
+        <tr>
+          <td><code>🧩 Components</code></td>
+          <td>All reusable components with variants (buttons, forms, badges, KPI cards, nav)</td>
+          <td>Component library — publish as team library</td>
+        </tr>
+        <tr>
+          <td><code>🖥 Screens — Desktop</code></td>
+          <td>SCR-001 Dashboard, SCR-002 Companies, SCR-003 Sites, SCR-004 Barycenter, SCR-005 Map</td>
+          <td>1280×800 canonical frames</td>
+        </tr>
+        <tr>
+          <td><code>📱 Screens — Responsive</code></td>
+          <td>Compact 1024px, Tablet 768px, Mobile 375px frames</td>
+          <td>Responsive layout documentation</td>
+        </tr>
+        <tr>
+          <td><code>🔄 Interactions</code></td>
+          <td>User flow diagrams, prototype connections, state transitions</td>
+          <td>UX flows for stakeholder review</td>
+        </tr>
+        <tr>
+          <td><code>🗂 Modals &amp; Overlays</code></td>
+          <td>Create/Edit Company, Create/Edit Site, Delete confirmations, Toast notifications</td>
+          <td>All overlay components isolated</td>
+        </tr>
+        <tr>
+          <td><code>🗺 Map Components</code></td>
+          <td>Site markers, barycenter markers, legend, controls, popups</td>
+          <td>Leaflet map UI elements</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════════════ 2. VARIABLE COLLECTIONS -->
+  <h2><span class="num">2</span> Figma Variable Collections</h2>
+  <div class="spec-card">
+    <div class="note">
+      <strong>Note:</strong> Create these as Figma Variables (not just styles) to enable Design Tokens export and multi-mode theming.
+    </div>
+    <div class="grid-2" style="margin-top:20px;">
+      <div>
+        <h3>Collection: Colors</h3>
+        <table>
+          <thead><tr><th>Variable Name</th><th>Light Value</th><th>Dark Value</th></tr></thead>
+          <tbody>
+            <tr><td><code>primary/900</code></td><td>#0D2137</td><td>#0D2137</td></tr>
+            <tr><td><code>primary/700</code></td><td>#1F4E79</td><td>#1F4E79</td></tr>
+            <tr><td><code>primary/600</code></td><td>#2E6DA4</td><td>#5B9BD5</td></tr>
+            <tr><td><code>primary/400</code></td><td>#5B9BD5</td><td>#2E6DA4</td></tr>
+            <tr><td><code>primary/100</code></td><td>#DDEEFF</td><td>#1F4E79</td></tr>
+            <tr><td><code>primary/050</code></td><td>#F0F7FF</td><td>#1A3A5C</td></tr>
+            <tr><td><code>neutral/900</code></td><td>#111827</td><td>#F9FAFB</td></tr>
+            <tr><td><code>neutral/700</code></td><td>#374151</td><td>#D1D5DB</td></tr>
+            <tr><td><code>neutral/500</code></td><td>#6B7280</td><td>#9CA3AF</td></tr>
+            <tr><td><code>neutral/300</code></td><td>#D1D5DB</td><td>#374151</td></tr>
+            <tr><td><code>neutral/100</code></td><td>#F3F4F6</td><td>#111827</td></tr>
+            <tr><td><code>neutral/000</code></td><td>#FFFFFF</td><td>#1F2937</td></tr>
+            <tr><td><code>success/600</code></td><td>#16A34A</td><td>#22C55E</td></tr>
+            <tr><td><code>success/100</code></td><td>#DCFCE7</td><td>#14532D</td></tr>
+            <tr><td><code>warning/600</code></td><td>#D97706</td><td>#F59E0B</td></tr>
+            <tr><td><code>danger/600</code></td><td>#DC2626</td><td>#EF4444</td></tr>
+            <tr><td><code>info/600</code></td><td>#0891B2</td><td>#22D3EE</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <h3>Collection: Spacing</h3>
+        <table>
+          <thead><tr><th>Variable</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td><code>space/1</code></td><td>4px</td></tr>
+            <tr><td><code>space/2</code></td><td>8px</td></tr>
+            <tr><td><code>space/3</code></td><td>12px</td></tr>
+            <tr><td><code>space/4</code></td><td>16px</td></tr>
+            <tr><td><code>space/5</code></td><td>20px</td></tr>
+            <tr><td><code>space/6</code></td><td>24px</td></tr>
+            <tr><td><code>space/8</code></td><td>32px</td></tr>
+            <tr><td><code>space/10</code></td><td>40px</td></tr>
+            <tr><td><code>space/12</code></td><td>48px</td></tr>
+          </tbody>
+        </table>
+        <h3 style="margin-top:20px;">Collection: Radius</h3>
+        <table>
+          <thead><tr><th>Variable</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td><code>radius/1</code></td><td>4px — Inputs, cells</td></tr>
+            <tr><td><code>radius/2</code></td><td>6px — Buttons, badges</td></tr>
+            <tr><td><code>radius/3</code></td><td>8px — Cards, panels</td></tr>
+            <tr><td><code>radius/4</code></td><td>12px — Modals</td></tr>
+            <tr><td><code>radius/full</code></td><td>9999px — Pills, avatars</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════ 3. COMPONENT VARIANTS -->
+  <h2><span class="num">3</span> Component Variant Matrix</h2>
+  <div class="spec-card">
+    <h3>Button Component — Variants</h3>
+    <table>
+      <thead><tr><th>Property</th><th>Values</th></tr></thead>
+      <tbody>
+        <tr><td>Variant</td><td>Primary / Secondary / Danger / Ghost / Icon</td></tr>
+        <tr><td>Size</td><td>Default (44px min-height) / Small (32px)</td></tr>
+        <tr><td>State</td><td>Default / Hover / Active / Disabled / Loading</td></tr>
+        <tr><td>Has Icon</td><td>True (icon + label) / False (label only) / Icon Only</td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top: 20px;">
+      <h3>Input Component — Variants</h3>
+      <table>
+        <thead><tr><th>Property</th><th>Values</th></tr></thead>
+        <tbody>
+          <tr><td>Type</td><td>Text / Number / Email / Tel / Search / Select / Textarea</td></tr>
+          <tr><td>State</td><td>Default / Focused / Filled / Error / Disabled</td></tr>
+          <tr><td>Has Label</td><td>True / False</td></tr>
+          <tr><td>Has Helper</td><td>None / Hint / Error Message</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top: 20px;">
+      <h3>Badge Component — Variants</h3>
+      <table>
+        <thead><tr><th>Property</th><th>Values</th></tr></thead>
+        <tbody>
+          <tr><td>Variant</td><td>Success / Warning / Danger / Info / Neutral / Primary</td></tr>
+          <tr><td>Size</td><td>Default (12px) / Small (10px)</td></tr>
+          <tr><td>Has Dot</td><td>True / False</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top: 20px;">
+      <h3>KPI Card Component — Variants</h3>
+      <table>
+        <thead><tr><th>Property</th><th>Values</th></tr></thead>
+        <tbody>
+          <tr><td>Icon Color</td><td>Primary / Info / Warning / Success / Danger</td></tr>
+          <tr><td>Has Trend</td><td>True (up/down direction) / False</td></tr>
+          <tr><td>State</td><td>Default / Loading (skeleton)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════ 4. SCREEN INVENTORY -->
+  <h2><span class="num">4</span> Screen Inventory &amp; Status</h2>
+  <div class="spec-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Screen ID</th>
+          <th>Name</th>
+          <th>Priority</th>
+          <th>Prototype File</th>
+          <th>Route</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>SCR-001</code></td>
+          <td>Dashboard</td>
+          <td><span class="tag tag-p0">P0</span></td>
+          <td><code>screen-01-dashboard.html</code></td>
+          <td><code>/dashboard</code></td>
+          <td><span class="tag tag-done">Complete</span></td>
+        </tr>
+        <tr>
+          <td><code>SCR-002</code></td>
+          <td>Companies Management</td>
+          <td><span class="tag tag-p0">P0</span></td>
+          <td><code>screen-02-companies.html</code></td>
+          <td><code>/companies</code></td>
+          <td><span class="tag tag-done">Complete</span></td>
+        </tr>
+        <tr>
+          <td><code>SCR-003</code></td>
+          <td>Sites Management</td>
+          <td><span class="tag tag-p0">P0</span></td>
+          <td><code>screen-03-sites.html</code></td>
+          <td><code>/sites</code></td>
+          <td><span class="tag tag-done">Complete</span></td>
+        </tr>
+        <tr>
+          <td><code>SCR-004</code></td>
+          <td>Barycenter Calculator</td>
+          <td><span class="tag tag-p0">P0</span></td>
+          <td><code>screen-04-barycenter.html</code></td>
+          <td><code>/barycenter</code></td>
+          <td><span class="tag tag-done">Complete</span></td>
+        </tr>
+        <tr>
+          <td><code>SCR-005</code></td>
+          <td>Full Map View</td>
+          <td><span class="tag tag-p1">P1</span></td>
+          <td><code>screen-05-map.html</code></td>
+          <td><code>/map</code></td>
+          <td><span class="tag tag-done">Complete</span></td>
+        </tr>
+        <tr>
+          <td><code>MOD-001</code></td>
+          <td>Create/Edit Company Modal</td>
+          <td><span class="tag tag-p0">P0</span></td>
+          <td><code>modal-states.html</code></td>
+          <td>Overlay (from /companies)</td>
+          <td><span class="tag tag-done">Complete</span></td>
+        </tr>
+        <tr>
+          <td><code>MOD-002</code></td>
+          <td>Create/Edit Site Modal</td>
+          <td><span class="tag tag-p0">P0</span></td>
+          <td><code>modal-states.html</code></td>
+          <td>Overlay (from /sites)</td>
+          <td><span class="tag tag-done">Complete</span></td>
+        </tr>
+        <tr>
+          <td><code>MOD-003</code></td>
+          <td>Delete Confirmation Modals</td>
+          <td><span class="tag tag-p0">P0</span></td>
+          <td><code>modal-states.html</code></td>
+          <td>Overlay (from any)</td>
+          <td><span class="tag tag-done">Complete</span></td>
+        </tr>
+        <tr>
+          <td><code>RES-001</code></td>
+          <td>Responsive Breakpoints</td>
+          <td><span class="tag tag-p1">P1</span></td>
+          <td><code>screen-06-responsive.html</code></td>
+          <td>All screens at 5 breakpoints</td>
+          <td><span class="tag tag-done">Complete</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════════════ 5. USER FLOWS -->
+  <h2><span class="num">5</span> User Flows &amp; Prototype Connections</h2>
+  <div class="spec-card">
+    <div class="grid-2">
+      <div>
+        <h3>Primary User Flow: First-Time Calculation</h3>
+        <ol style="padding-left:20px; font-size:13px; line-height:2;">
+          <li>Dashboard <code>→</code> "Calculate Barycenter" button</li>
+          <li>Barycenter page (empty state shown)</li>
+          <li>Select company from dropdown</li>
+          <li>If company has &lt;2 sites: navigate to Sites via link</li>
+          <li>Sites page: Add Site (opens modal)</li>
+          <li>Fill modal → "Add Site" → success toast</li>
+          <li>Return to Barycenter → run calculation</li>
+          <li>Result displayed in map + detail card</li>
+          <li>Approve / Reject result → status updates</li>
+        </ol>
+      </div>
+      <div>
+        <h3>Secondary Flow: Company Management</h3>
+        <ol style="padding-left:20px; font-size:13px; line-height:2;">
+          <li>Companies page (list view)</li>
+          <li>Search / filter → find company</li>
+          <li>"New Company" button → Create modal opens</li>
+          <li>Fill form → "Create Company" → success toast</li>
+          <li>New row appears in table</li>
+          <li>Click Sites icon (location_on) → Sites filtered by company</li>
+          <li>Add sites → return to Companies</li>
+          <li>Click Barycenter icon (my_location) → Barycenter with company pre-selected</li>
+        </ol>
+      </div>
+    </div>
+    <div style="margin-top:24px;">
+      <h3>Figma Prototype Connections (key interactions)</h3>
+      <table>
+        <thead><tr><th>From</th><th>Trigger</th><th>To</th><th>Animation</th></tr></thead>
+        <tbody>
+          <tr><td>Dashboard — "Calculate Barycenter"</td><td>On Click</td><td>Barycenter screen</td><td>Page fade 150ms</td></tr>
+          <tr><td>Sidebar nav item</td><td>On Click</td><td>Respective screen</td><td>Page fade 150ms</td></tr>
+          <tr><td>Companies "New Company" button</td><td>On Click</td><td>Create Company overlay</td><td>Modal scale-in 180ms</td></tr>
+          <tr><td>Modal "Cancel" button</td><td>On Click</td><td>Back to screen</td><td>Modal scale-out 140ms</td></tr>
+          <tr><td>Modal overlay background</td><td>On Click</td><td>Dismiss modal</td><td>Fade-out 140ms</td></tr>
+          <tr><td>Companies edit icon (btn-icon)</td><td>On Click</td><td>Edit Company overlay</td><td>Modal scale-in 180ms</td></tr>
+          <tr><td>Companies delete icon</td><td>On Click</td><td>Delete confirm modal</td><td>Modal scale-in 180ms</td></tr>
+          <tr><td>Delete confirm "Delete"</td><td>On Click</td><td>Success toast + list</td><td>Toast slide-in 220ms</td></tr>
+          <tr><td>Barycenter "Calculate" button</td><td>On Click</td><td>Loading state (spinner)</td><td>Button state change 100ms</td></tr>
+          <tr><td>Barycenter result → "Approve"</td><td>On Click</td><td>Badge changes to APPROVED</td><td>Instant + toast 220ms</td></tr>
+          <tr><td>Sites table/card toggle</td><td>On Click</td><td>View mode switch</td><td>Fade 150ms</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════ 6. COMPONENT MEASUREMENTS -->
+  <h2><span class="num">6</span> Precise Component Measurements</h2>
+  <div class="spec-card">
+    <div class="grid-2">
+      <div>
+        <h3>App Shell</h3>
+        <table>
+          <thead><tr><th>Element</th><th>Dimension</th></tr></thead>
+          <tbody>
+            <tr><td>Sidebar (expanded)</td><td>240px wide, full viewport height</td></tr>
+            <tr><td>Sidebar (collapsed)</td><td>64px wide, full viewport height</td></tr>
+            <tr><td>Sidebar logo area</td><td>56px tall</td></tr>
+            <tr><td>Nav item height</td><td>48px tall</td></tr>
+            <tr><td>Nav active indicator</td><td>3px left border, inset 8px top/bottom</td></tr>
+            <tr><td>Nav section label</td><td>32px tall area, 16px horizontal padding</td></tr>
+            <tr><td>Topbar height</td><td>56px</td></tr>
+            <tr><td>Topbar border</td><td>1px bottom, color neutral-300</td></tr>
+            <tr><td>Topbar search max-width</td><td>360px</td></tr>
+            <tr><td>User avatar</td><td>32×32px, border-radius full</td></tr>
+            <tr><td>Page content padding</td><td>24px all sides</td></tr>
+            <tr><td>Page content gap</td><td>24px between sections</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <h3>Data Table</h3>
+        <table>
+          <thead><tr><th>Element</th><th>Dimension</th></tr></thead>
+          <tbody>
+            <tr><td>Header row height</td><td>40px</td></tr>
+            <tr><td>Header font</td><td>11px, 600, uppercase, 0.04em tracking</td></tr>
+            <tr><td>Data row height</td><td>48px</td></tr>
+            <tr><td>Cell padding</td><td>0 16px horizontal</td></tr>
+            <tr><td>Selected row accent</td><td>3px left inset, primary-400</td></tr>
+            <tr><td>Alternating row bg</td><td>primary-050 (#F0F7FF)</td></tr>
+            <tr><td>Hover row bg</td><td>primary-100 (#DDEEFF)</td></tr>
+            <tr><td>Row border</td><td>1px horizontal, neutral-300</td></tr>
+            <tr><td>Pagination bar height</td><td>52px</td></tr>
+            <tr><td>Page button size</td><td>32×32px</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="grid-2" style="margin-top:24px;">
+      <div>
+        <h3>Modals</h3>
+        <table>
+          <thead><tr><th>Element</th><th>Dimension</th></tr></thead>
+          <tbody>
+            <tr><td>Modal default max-width</td><td>600px</td></tr>
+            <tr><td>Modal large max-width</td><td>800px</td></tr>
+            <tr><td>Modal small max-width</td><td>440px</td></tr>
+            <tr><td>Modal max-height</td><td>90vh</td></tr>
+            <tr><td>Modal border-radius</td><td>12px (radius-4)</td></tr>
+            <tr><td>Modal header padding</td><td>20px 24px</td></tr>
+            <tr><td>Modal body padding</td><td>24px</td></tr>
+            <tr><td>Modal footer padding</td><td>16px 24px</td></tr>
+            <tr><td>Modal footer bg</td><td>neutral-100</td></tr>
+            <tr><td>Overlay bg</td><td>rgba(0,0,0,0.5)</td></tr>
+            <tr><td>Modal shadow</td><td>Level 3 (0 8px 24px rgba(0,0,0,0.18))</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <h3>Form Controls</h3>
+        <table>
+          <thead><tr><th>Element</th><th>Dimension</th></tr></thead>
+          <tbody>
+            <tr><td>Input height</td><td>40px</td></tr>
+            <tr><td>Input padding</td><td>0 12px horizontal</td></tr>
+            <tr><td>Input border</td><td>1.5px solid neutral-300</td></tr>
+            <tr><td>Input border-radius</td><td>4px (radius-1)</td></tr>
+            <tr><td>Input focus border</td><td>1.5px solid primary-600</td></tr>
+            <tr><td>Input error border</td><td>1.5px solid danger-600</td></tr>
+            <tr><td>Label font</td><td>11px, 600, uppercase, 0.04em tracking</td></tr>
+            <tr><td>Label color</td><td>neutral-700</td></tr>
+            <tr><td>Form group gap</td><td>4px (label to input)</td></tr>
+            <tr><td>Textarea min-height</td><td>80px</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════ 7. CSS VARIABLES QUICK REF -->
+  <h2><span class="num">7</span> CSS Custom Properties — Quick Reference</h2>
+  <div class="spec-card">
+    <pre>/* Import tokens in Angular global styles */
+@import 'styles/tokens.scss';
+
+/* Usage in component styles */
+.my-element {
+  color: var(--color-neutral-900);
+  background: var(--color-neutral-000);
+  border: 1.5px solid var(--color-neutral-300);
+  border-radius: var(--radius-3);
+  padding: var(--space-4) var(--space-6);
+  font-size: var(--font-size-body);
+  box-shadow: var(--shadow-1);
+  transition: border-color var(--anim-button-hover) ease-out;
+}
+
+.my-element:focus {
+  border-color: var(--color-primary-600);
+  outline: 2px solid rgba(46, 109, 164, 0.2);
+}</pre>
+  </div>
+
+  <!-- ═══════════════════════════════════ 8. IMPLEMENTATION NOTES -->
+  <h2><span class="num">8</span> Implementation Notes for Developers</h2>
+  <div class="spec-card">
+    <div class="grid-2">
+      <div>
+        <h3>Angular Component Structure</h3>
+        <ul>
+          <li>All components are Angular standalone (no NgModules)</li>
+          <li>State management via Angular Signals (<code>signal()</code>, <code>computed()</code>)</li>
+          <li>Forms use Reactive Forms (<code>FormBuilder</code>)</li>
+          <li>Modal state: <code>signal&lt;boolean&gt;</code> → conditional <code>@if</code></li>
+          <li>Page transitions: <code>.page-enter</code> CSS class with <code>@keyframes pageFadeIn</code></li>
+          <li>Toast notifications via <code>ToastService</code> singleton</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Map Integration (Leaflet)</h3>
+        <ul>
+          <li>Map initializes in <code>ngAfterViewInit</code> via <code>@ViewChild</code></li>
+          <li>Cleanup in <code>ngOnDestroy</code> via <code>this.map?.remove()</code></li>
+          <li>Site markers: <code>L.circleMarker</code> with radius proportional to <code>sqrt(weightTons/100)</code></li>
+          <li>Optimal center: <code>L.divIcon</code> with navy circle + white border</li>
+          <li>Distance lines: dashed <code>L.polyline</code>, primary-400 color, 35% opacity</li>
+          <li>Satellite toggle: swap between OSM and Esri World Imagery tile layers</li>
+        </ul>
+      </div>
+    </div>
+    <div style="margin-top:24px;">
+      <h3>Accessibility Implementation Checklist</h3>
+      <div class="grid-3">
+        <div>
+          <ul>
+            <li>Buttons: <code>aria-label</code> on icon-only</li>
+            <li>Modals: <code>role="dialog" aria-modal="true" aria-labelledby="id"</code></li>
+            <li>Delete modals: <code>role="alertdialog"</code></li>
+            <li>Tables: <code>aria-label</code>, <code>scope="col"</code></li>
+          </ul>
+        </div>
+        <div>
+          <ul>
+            <li>Forms: <code>&lt;label for="id"&gt;</code> association required</li>
+            <li>Errors: <code>role="alert"</code> on error messages</li>
+            <li>Map: <code>role="img" aria-label="…"</code></li>
+            <li>Activity feed: <code>role="feed" aria-live="polite"</code></li>
+          </ul>
+        </div>
+        <div>
+          <ul>
+            <li>Pagination: <code>aria-label="Pagination" role="navigation"</code></li>
+            <li>Active page: <code>aria-current="page"</code></li>
+            <li>KPI grid: <code>role="list" aria-label="…"</code></li>
+            <li>Focus ring: 2px solid primary-600, offset 2px</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="text-align:center; padding:32px 0; font-size:12px; color:#9CA3AF;">
+    Logistics Barycenter Platform — Figma Developer Handoff Specification v1.0.0 — March 2026
+  </div>
+
+</div>
+</body>
+</html>

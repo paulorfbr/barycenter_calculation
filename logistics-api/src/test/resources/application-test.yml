@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: logistics-api-test
+
+logistics:
+  seed-data:
+    enabled: false   # Integration tests seed their own data when needed
+  cors:
+    allowed-origins:
+      - "http://localhost:4200"

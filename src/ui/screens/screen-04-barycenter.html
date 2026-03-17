@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SCR-004 — Barycenter Calculator</title>
+  <link rel="stylesheet" href="../design/design-tokens.css" />
+  <link rel="stylesheet" href="../design/prototype-shell.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    /* ── Two-column calculator layout ────────────────────────────────────── */
+    .bary-layout {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 20px;
+      align-items: start;
+      padding-bottom: 40px;
+    }
+
+    @media (max-width: 1023px) {
+      .bary-layout { grid-template-columns: 1fr; }
+    }
+
+    /* ── Left panel: sticky, scrollable ─────────────────────────────────── */
+    .bary-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: sticky;
+      top: 24px;
+      max-height: calc(100vh - var(--topbar-height) - 48px);
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .bary-panel::-webkit-scrollbar { width: 4px; }
+    .bary-panel::-webkit-scrollbar-track { background: transparent; }
+    .bary-panel::-webkit-scrollbar-thumb { background: var(--color-neutral-300); border-radius: 2px; }
+
+    /* ── Main column ─────────────────────────────────────────────────────── */
+    .bary-main { display: flex; flex-direction: column; gap: 20px; }
+
+    /* ── Map ─────────────────────────────────────────────────────────────── */
+    .map-container {
+      height: 440px;
+      width: 100%;
+      background: #e8f4f8;
+      border-radius: 0 0 var(--radius-3) var(--radius-3);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .map-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #e8f4f8 0%, #d4e9f2 100%);
+      font-size: 13px;
+      color: var(--color-neutral-500);
+      gap: 8px;
+    }
+
+    .map-placeholder .material-icons { font-size: 48px; color: var(--color-primary-400); opacity: 0.6; }
+
+    .map-legend {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 12px 24px;
+      border-top: 1px solid var(--color-neutral-300);
+      font-size: var(--font-size-small);
+      color: var(--color-neutral-700);
+    }
+
+    .legend-item { display: flex; align-items: center; gap: 8px; }
+
+    .legend-dot {
+      width: 12px; height: 12px; border-radius: 50%; display: inline-block; flex-shrink: 0;
+    }
+
+    /* ── Site weight list ────────────────────────────────────────────────── */
+    .site-weight-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--color-neutral-300);
+    }
+    .site-weight-row:last-child { border-bottom: none; }
+
+    .site-weight-icon { font-size: 20px; flex-shrink: 0; }
+    .site-weight-info { flex: 1; min-width: 0; }
+    .site-weight-name { font-size: var(--font-size-small); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .site-weight-city { font-size: 11px; color: var(--color-neutral-500); }
+    .site-weight-bar-col { width: 60px; flex-shrink: 0; }
+    .site-weight-tons { font-size: 11px; min-width: 42px; text-align: right; color: var(--color-neutral-700); font-family: var(--font-family-mono); }
+
+    /* ── History list ────────────────────────────────────────────────────── */
+    .history-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 16px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--color-neutral-300);
+      transition: background 80ms ease-out;
+    }
+    .history-row:last-child { border-bottom: none; }
+    .history-row:hover { background: var(--color-primary-050); }
+    .history-row.selected { background: var(--color-primary-100); }
+
+    .history-icon-wrap {
+      width: 32px; height: 32px; border-radius: var(--radius-full);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+
+    .history-info { flex: 1; min-width: 0; }
+    .history-coord { font-size: var(--font-size-small); font-weight: 600; font-family: var(--font-family-mono); }
+    .history-meta { font-size: 11px; color: var(--color-neutral-500); margin-top: 2px; display: flex; align-items: center; gap: 8px; }
+
+    /* ── Result detail ───────────────────────────────────────────────────── */
+    .result-primary {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 24px;
+      align-items: start;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 767px) { .result-primary { grid-template-columns: 1fr; } }
+
+    .result-coord-block {
+      background: var(--color-primary-050);
+      border: 1px solid var(--color-primary-100);
+      border-radius: var(--radius-3);
+      padding: 16px 24px;
+      text-align: center;
+      min-width: 200px;
+    }
+
+    .result-label {
+      font-size: var(--font-size-label); font-weight: 600;
+      color: var(--color-neutral-500); text-transform: uppercase; letter-spacing: 0.04em;
+      margin-bottom: 8px;
+    }
+
+    .result-coord {
+      font-size: var(--font-size-h2); font-weight: 700;
+      color: var(--color-primary-700); font-family: var(--font-family-mono);
+      margin-bottom: 4px;
+    }
+
+    .result-coord-detail { font-size: var(--font-size-small); color: var(--color-neutral-500); }
+
+    .result-meta-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;
+    }
+
+    .result-meta-item { display: flex; flex-direction: column; gap: 3px; }
+    .result-meta-value { font-size: var(--font-size-h3); font-weight: 700; color: var(--color-neutral-900); }
+    .result-meta-label { font-size: var(--font-size-label); font-weight: 600; color: var(--color-neutral-500); text-transform: uppercase; }
+
+    .result-summary-bar {
+      display: flex; gap: 24px; margin-top: 20px;
+      padding: 16px 20px;
+      background: var(--color-neutral-100); border-radius: var(--radius-2);
+    }
+
+    .result-summary-item {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .result-summary-item .material-icons { font-size: 28px; }
+    .result-summary-value { font-size: var(--font-size-h3); font-weight: 700; }
+    .result-summary-label { font-size: var(--font-size-small); color: var(--color-neutral-500); }
+
+    /* ── Empty state ─────────────────────────────────────────────────────── */
+    .empty-panel {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 48px 32px; text-align: center;
+      min-height: 320px;
+    }
+    .empty-icon { font-size: 56px; color: var(--color-neutral-300); margin-bottom: 16px; }
+    .empty-panel h2 { font-size: var(--font-size-h2); margin-bottom: 12px; }
+    .empty-panel p { color: var(--color-neutral-500); max-width: 440px; margin-bottom: 20px; line-height: 1.6; }
+    .empty-actions { display: flex; gap: 12px; }
+
+    /* ── Map markers (Leaflet overrides) ─────────────────────────────────── */
+    .leaflet-container { font-family: var(--font-family-base) !important; border-radius: 0 0 var(--radius-3) var(--radius-3); }
+    .leaflet-popup-content-wrapper { border-radius: var(--radius-2) !important; box-shadow: var(--shadow-2) !important; font-family: var(--font-family-base) !important; }
+    .leaflet-popup-content { font-size: var(--font-size-small) !important; margin: 12px 16px !important; }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- ══════════════ SIDEBAR ══════════════ -->
+  <nav class="sidebar" aria-label="Main navigation">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"><span class="material-icons">my_location</span></div>
+      <div class="sidebar-logo-text">
+        <div class="sidebar-logo-name">Define Logistics</div>
+        <div class="sidebar-logo-sub">Barycenter Platform</div>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section">Main</div>
+      <a href="screen-01-dashboard.html" class="nav-item">
+        <span class="material-icons">dashboard</span><span class="nav-item-label">Dashboard</span>
+      </a>
+      <a href="screen-02-companies.html" class="nav-item">
+        <span class="material-icons">domain</span><span class="nav-item-label">Companies</span>
+      </a>
+      <a href="screen-03-sites.html" class="nav-item">
+        <span class="material-icons">location_on</span><span class="nav-item-label">Sites</span>
+      </a>
+      <div class="nav-section">Analytics</div>
+      <a href="screen-04-barycenter.html" class="nav-item active" aria-current="page">
+        <span class="material-icons">my_location</span><span class="nav-item-label">Barycenter</span>
+      </a>
+      <a href="screen-05-map.html" class="nav-item">
+        <span class="material-icons">map</span><span class="nav-item-label">Map View</span>
+      </a>
+    </div>
+    <div class="sidebar-footer">
+      <div class="sidebar-collapse-btn"><span class="material-icons">chevron_left</span></div>
+    </div>
+  </nav>
+
+  <!-- ══════════════ TOPBAR ══════════════ -->
+  <header class="topbar">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="screen-01-dashboard.html">Home</a>
+      <span class="material-icons" aria-hidden="true">chevron_right</span>
+      <span aria-current="page">Barycenter</span>
+    </nav>
+    <div class="topbar-search" role="search">
+      <span class="material-icons" aria-hidden="true">search</span>
+      <input type="search" placeholder="Search…" aria-label="Global search" />
+    </div>
+    <div class="topbar-end">
+      <button class="topbar-icon-btn" aria-label="Notifications"><span class="material-icons">notifications_none</span></button>
+      <div class="user-avatar" tabindex="0" role="button" aria-label="User menu">JD</div>
+    </div>
+  </header>
+
+  <!-- ══════════════ CONTENT ══════════════ -->
+  <main class="content-area" id="main-content">
+    <div class="page-content page-enter">
+      <div class="bary-layout">
+
+        <!-- ════ LEFT PANEL ════ -->
+        <aside class="bary-panel">
+
+          <!-- Panel header -->
+          <div style="padding: 0 4px;">
+            <h1 style="font-size: var(--font-size-h2); font-weight:700; color: var(--color-neutral-900);">Barycenter Calculator</h1>
+            <p class="page-subtitle">Optimal logistics center from weighted sites</p>
+          </div>
+
+          <!-- Company selector + algorithm -->
+          <div class="card">
+            <div class="card-body">
+              <div class="form-group">
+                <label class="form-label" for="bCompany">Select Company</label>
+                <select id="bCompany" class="form-control" onchange="showCompanyData(this.value)">
+                  <option value="">— Choose a company —</option>
+                  <option value="acme">Acme Corporation (4 sites)</option>
+                  <option value="global">Global Freight Inc (12 sites)</option>
+                  <option value="fastlog">FastLog Inc (7 sites)</option>
+                  <option value="metro">Metro Moves (3 sites)</option>
+                </select>
+              </div>
+
+              <div id="algoSection" style="display:none; margin-top:16px;">
+                <div class="form-group">
+                  <label class="form-label" for="bAlgo">Algorithm</label>
+                  <select id="bAlgo" class="form-control" onchange="toggleAlgoParams(this.value)">
+                    <option value="simple">Simple Weighted Barycenter</option>
+                    <option value="weiszfeld" selected>Weiszfeld Iterative Refinement</option>
+                  </select>
+                </div>
+
+                <div id="weiszfeldParams" class="grid-2" style="margin-top:12px;">
+                  <div class="form-group">
+                    <label class="form-label" for="bMaxIter">Max Iterations</label>
+                    <input id="bMaxIter" class="form-control" type="number" min="1" max="10000" value="1000" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="bTol">Tolerance (km)</label>
+                    <input id="bTol" class="form-control" type="number" min="0.0001" step="0.001" value="0.01" />
+                  </div>
+                </div>
+
+                <div class="algorithm-info" style="margin-top:12px;">
+                  <strong>Weiszfeld:</strong> Minimises sum of weighted geodesic distances (geometric median). Best for logistics cost optimisation.
+                </div>
+
+                <button class="btn btn-primary" style="width:100%; margin-top:16px;" onclick="runCalculation()">
+                  <span class="material-icons">my_location</span>
+                  Calculate Barycenter
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Site weights list -->
+          <div id="siteWeightsList" class="card" style="display:none;">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title" style="font-size: var(--font-size-h3);">Input Sites</h2>
+                <p class="card-subtitle">4 active · 12.5k t total</p>
+              </div>
+              <a href="screen-03-sites.html" class="btn btn-ghost btn-sm">
+                <span class="material-icons">edit</span>
+              </a>
+            </div>
+            <div class="card-body" style="padding: 8px 16px;">
+              <div class="site-weight-row">
+                <span class="material-icons site-weight-icon" style="color:var(--color-warning-600);">location_on</span>
+                <div class="site-weight-info">
+                  <div class="site-weight-name">Frankfurt Depot</div>
+                  <div class="site-weight-city">Frankfurt, Germany</div>
+                </div>
+                <div class="site-weight-bar-col">
+                  <div class="weight-bar-track"><div class="weight-bar-fill" style="width:90%;"></div></div>
+                </div>
+                <span class="site-weight-tons">11.3k t</span>
+              </div>
+              <div class="site-weight-row">
+                <span class="material-icons site-weight-icon" style="color:var(--color-warning-600);">location_on</span>
+                <div class="site-weight-info">
+                  <div class="site-weight-name">Munich Office</div>
+                  <div class="site-weight-city">Munich, Germany</div>
+                </div>
+                <div class="site-weight-bar-col">
+                  <div class="weight-bar-track"><div class="weight-bar-fill" style="width:40%;"></div></div>
+                </div>
+                <span class="site-weight-tons">5.1k t</span>
+              </div>
+              <div class="site-weight-row">
+                <span class="material-icons site-weight-icon" style="color:var(--color-warning-600);">location_on</span>
+                <div class="site-weight-info">
+                  <div class="site-weight-name">Hamburg Port</div>
+                  <div class="site-weight-city">Hamburg, Germany</div>
+                </div>
+                <div class="site-weight-bar-col">
+                  <div class="weight-bar-track"><div class="weight-bar-fill" style="width:25%;"></div></div>
+                </div>
+                <span class="site-weight-tons">3.2k t</span>
+              </div>
+              <div class="site-weight-row" style="opacity:0.45;">
+                <span class="material-icons site-weight-icon" style="color:var(--color-neutral-300);">location_on</span>
+                <div class="site-weight-info">
+                  <div class="site-weight-name">Berlin Hub</div>
+                  <div class="site-weight-city">Berlin, Germany</div>
+                </div>
+                <div class="site-weight-bar-col">
+                  <div class="weight-bar-track"><div class="weight-bar-fill" style="width:0%; background:var(--color-neutral-300);"></div></div>
+                </div>
+                <span class="site-weight-tons" style="color:var(--color-neutral-400);">—</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Calculation history -->
+          <div id="historyList" class="card" style="display:none;">
+            <div class="card-header">
+              <h2 class="card-title" style="font-size: var(--font-size-h3);">Calculation History</h2>
+            </div>
+            <div style="padding:0;">
+              <div class="history-row selected" onclick="selectResult(this)" role="button" tabindex="0">
+                <div class="history-icon-wrap" style="background:var(--color-info-600);">
+                  <span class="material-icons" style="font-size:16px; color:white;">my_location</span>
+                </div>
+                <div class="history-info">
+                  <div class="history-coord">50.23°N 8.91°E</div>
+                  <div class="history-meta">Weiszfeld · 4 sites <span class="badge badge-primary" style="font-size:9px; padding:1px 6px;">Latest</span></div>
+                </div>
+                <span class="badge badge-info">CANDIDATE</span>
+              </div>
+              <div class="history-row" onclick="selectResult(this)" role="button" tabindex="0">
+                <div class="history-icon-wrap" style="background:var(--color-success-600);">
+                  <span class="material-icons" style="font-size:16px; color:white;">my_location</span>
+                </div>
+                <div class="history-info">
+                  <div class="history-coord">50.18°N 8.87°E</div>
+                  <div class="history-meta">Simple · 4 sites</div>
+                </div>
+                <span class="badge badge-success">APPROVED</span>
+              </div>
+            </div>
+          </div>
+
+        </aside>
+
+        <!-- ════ MAIN AREA ════ -->
+        <main class="bary-main">
+
+          <!-- Map card -->
+          <div class="card" style="overflow:visible;">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title">Geographic Visualization</h2>
+                <p class="card-subtitle">
+                  Optimal logistics center: <strong class="mono">50.23°N 8.91°E</strong>
+                </p>
+              </div>
+              <div style="display:flex; gap:4px;">
+                <button class="btn btn-icon" title="Reset view" aria-label="Reset map view">
+                  <span class="material-icons">center_focus_strong</span>
+                </button>
+                <button class="btn btn-icon" title="Satellite view" aria-label="Switch to satellite">
+                  <span class="material-icons">satellite</span>
+                </button>
+              </div>
+            </div>
+            <div id="baryMap" class="map-container" aria-label="Interactive map showing consumption sites and optimal logistics center" role="img">
+              <!-- Leaflet map renders here -->
+            </div>
+            <div class="map-legend" aria-label="Map legend">
+              <div class="legend-item">
+                <span class="legend-dot" style="background:var(--color-warning-600);"></span>
+                Consumption Site
+              </div>
+              <div class="legend-item" style="opacity:0.5;">
+                <span class="legend-dot" style="background:var(--color-neutral-300);"></span>
+                Inactive Site
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot" style="background:var(--color-primary-700); width:16px; height:16px; border:2px solid white; box-shadow:0 2px 6px rgba(0,0,0,0.3);"></span>
+                Optimal Center
+              </div>
+            </div>
+          </div>
+
+          <!-- Result detail card -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title">Calculation Result</h2>
+                <p class="card-subtitle">Acme Corporation</p>
+              </div>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <span class="badge badge-info">CANDIDATE</span>
+                <button class="btn btn-primary btn-sm" aria-label="Approve this result">
+                  <span class="material-icons">check</span> Approve
+                </button>
+                <button class="btn btn-secondary btn-sm" aria-label="Reject this result">
+                  <span class="material-icons">close</span> Reject
+                </button>
+              </div>
+            </div>
+            <div class="card-body">
+
+              <!-- Primary result -->
+              <div class="result-primary">
+                <div class="result-coord-block">
+                  <div class="result-label">Optimal Location</div>
+                  <div class="result-coord">50.23°N 8.91°E</div>
+                  <div class="result-coord-detail">Lat 50.230000, Lon 8.910000</div>
+                </div>
+                <div class="result-meta-grid">
+                  <div class="result-meta-item">
+                    <span class="result-meta-value">Weiszfeld</span>
+                    <span class="result-meta-label">Algorithm</span>
+                  </div>
+                  <div class="result-meta-item">
+                    <span class="result-meta-value">247</span>
+                    <span class="result-meta-label">Iterations</span>
+                  </div>
+                  <div class="result-meta-item">
+                    <span class="result-meta-value">0.0087 km</span>
+                    <span class="result-meta-label">Convergence Error</span>
+                  </div>
+                  <div class="result-meta-item">
+                    <span class="result-meta-value">12.5k t</span>
+                    <span class="result-meta-label">Total Weight</span>
+                  </div>
+                </div>
+              </div>
+
+              <hr class="divider" />
+
+              <!-- Site contribution table -->
+              <h3 style="font-size: var(--font-size-h3); margin-bottom:16px;">Site Contribution Analysis</h3>
+              <div style="overflow-x:auto;">
+                <table class="data-table" style="min-width:560px;" aria-label="Site contribution analysis">
+                  <thead>
+                    <tr>
+                      <th scope="col">Site</th>
+                      <th scope="col">Coordinates</th>
+                      <th scope="col">Weight</th>
+                      <th scope="col">Weight %</th>
+                      <th scope="col">Dist. to Optimal</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                          <span class="material-icons" style="font-size:18px; color:var(--color-warning-600);">location_on</span>
+                          Frankfurt Depot
+                        </div>
+                      </td>
+                      <td class="mono" style="font-size:12px;">50.1109, 8.6821</td>
+                      <td class="mono">11.3k t</td>
+                      <td>
+                        <div class="weight-bar-container" style="min-width:120px;">
+                          <div class="weight-bar-track"><div class="weight-bar-fill" style="width:90%;"></div></div>
+                          <span style="font-size:11px; min-width:32px; text-align:right; color:var(--color-neutral-500);">90.4%</span>
+                        </div>
+                      </td>
+                      <td class="mono">24.3 km</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                          <span class="material-icons" style="font-size:18px; color:var(--color-warning-600);">location_on</span>
+                          Munich Office
+                        </div>
+                      </td>
+                      <td class="mono" style="font-size:12px;">48.1351, 11.5820</td>
+                      <td class="mono">5.1k t</td>
+                      <td>
+                        <div class="weight-bar-container" style="min-width:120px;">
+                          <div class="weight-bar-track"><div class="weight-bar-fill" style="width:41%;"></div></div>
+                          <span style="font-size:11px; min-width:32px; text-align:right; color:var(--color-neutral-500);">40.8%</span>
+                        </div>
+                      </td>
+                      <td class="mono">312.1 km</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                          <span class="material-icons" style="font-size:18px; color:var(--color-warning-600);">location_on</span>
+                          Hamburg Port
+                        </div>
+                      </td>
+                      <td class="mono" style="font-size:12px;">53.5511, 9.9937</td>
+                      <td class="mono">3.2k t</td>
+                      <td>
+                        <div class="weight-bar-container" style="min-width:120px;">
+                          <div class="weight-bar-track"><div class="weight-bar-fill" style="width:26%;"></div></div>
+                          <span style="font-size:11px; min-width:32px; text-align:right; color:var(--color-neutral-500);">25.6%</span>
+                        </div>
+                      </td>
+                      <td class="mono">378.4 km</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Summary bar -->
+              <div class="result-summary-bar">
+                <div class="result-summary-item">
+                  <span class="material-icons" style="color:var(--color-primary-600);">route</span>
+                  <div>
+                    <div class="result-summary-value">128.4 km</div>
+                    <div class="result-summary-label">Avg weighted distance to all sites</div>
+                  </div>
+                </div>
+                <div class="result-summary-item">
+                  <span class="material-icons" style="color:var(--color-success-600);">check_circle</span>
+                  <div>
+                    <div class="result-summary-value">3</div>
+                    <div class="result-summary-label">Sites in calculation</div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </main>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Leaflet JS for the live map -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  // ── Init Leaflet map ────────────────────────────────────────────────────
+  const map = L.map('baryMap', {
+    center: [50.8, 10.2],
+    zoom: 6,
+    zoomControl: true,
+  });
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors',
+    maxZoom: 18,
+  }).addTo(map);
+
+  const sites = [
+    { name: 'Frankfurt Depot',  lat: 50.1109, lng: 8.6821,  weight: 11300, active: true },
+    { name: 'Munich Office',    lat: 48.1351, lng: 11.5820, weight: 5100,  active: true },
+    { name: 'Hamburg Port',     lat: 53.5511, lng: 9.9937,  weight: 3200,  active: true },
+    { name: 'Berlin Hub',       lat: 52.5200, lng: 13.4050, weight: 0,     active: false },
+  ];
+
+  const optimalLat = 50.23, optimalLng = 8.91;
+
+  // Draw site markers
+  sites.forEach(s => {
+    const marker = L.circleMarker([s.lat, s.lng], {
+      radius: s.active ? 8 + Math.sqrt(s.weight / 200) : 8,
+      fillColor: s.active ? '#D97706' : '#D1D5DB',
+      color: '#fff', weight: 2, opacity: 1,
+      fillOpacity: s.active ? 0.85 : 0.4,
+    }).addTo(map);
+
+    marker.bindPopup(`
+      <div style="min-width:180px;">
+        <strong style="font-size:13px;">${s.name}</strong>
+        <hr style="margin:6px 0; border-color:#E5E7EB;" />
+        <span style="font-size:11px; color:#374151;">
+          <b>Weight:</b> ${s.active ? (s.weight/1000).toFixed(1)+'k t' : 'Inactive'}<br/>
+          <b>Coord:</b> <code>${s.lat}, ${s.lng}</code><br/>
+          <b>Status:</b> ${s.active ? 'ACTIVE' : 'INACTIVE'}
+        </span>
+      </div>
+    `);
+
+    if (s.active) {
+      L.polyline([[s.lat, s.lng], [optimalLat, optimalLng]], {
+        color: '#5B9BD5', weight: 1.5, opacity: 0.35, dashArray: '5 5',
+      }).addTo(map);
+    }
+  });
+
+  // Draw optimal center
+  const baryIcon = L.divIcon({
+    html: `<div style="width:22px;height:22px;background:#1F4E79;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.35);"></div>`,
+    className: '', iconSize: [22, 22], iconAnchor: [11, 11],
+  });
+
+  L.marker([optimalLat, optimalLng], { icon: baryIcon })
+    .bindPopup(`
+      <div style="min-width:200px;">
+        <strong style="font-size:13px; color:#1F4E79;">Optimal Logistics Center</strong>
+        <hr style="margin:6px 0; border-color:#E5E7EB;" />
+        <code style="font-size:12px;">50.23°N 8.91°E</code><br/>
+        <span style="font-size:11px; color:#374151;">
+          Algorithm: Weiszfeld<br/>
+          Iterations: 247<br/>
+          Sites: 3<br/>
+          Total weight: 12.5k t
+        </span>
+      </div>
+    `)
+    .addTo(map);
+
+  // ── UI interactions ──────────────────────────────────────────────────────
+  function showCompanyData(val) {
+    const show = val !== '';
+    document.getElementById('algoSection').style.display = show ? 'block' : 'none';
+    document.getElementById('siteWeightsList').style.display = show ? 'flex' : 'none';
+    document.getElementById('historyList').style.display = show ? 'flex' : 'none';
+  }
+
+  function toggleAlgoParams(val) {
+    document.getElementById('weiszfeldParams').style.display = val === 'weiszfeld' ? 'grid' : 'none';
+  }
+
+  function runCalculation() {
+    const btn = event.currentTarget;
+    btn.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px;"></div> Calculating…';
+    btn.disabled = true;
+    setTimeout(() => {
+      btn.innerHTML = '<span class="material-icons">my_location</span> Calculate Barycenter';
+      btn.disabled = false;
+    }, 1200);
+  }
+
+  function selectResult(row) {
+    document.querySelectorAll('.history-row').forEach(r => r.classList.remove('selected'));
+    row.classList.add('selected');
+  }
+</script>
+</body>
+</html>

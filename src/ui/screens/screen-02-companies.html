@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SCR-002 — Companies</title>
+  <link rel="stylesheet" href="../design/design-tokens.css" />
+  <link rel="stylesheet" href="../design/prototype-shell.css" />
+  <style>
+    .company-initial {
+      width: 34px; height: 34px; border-radius: var(--radius-full);
+      color: white; font-weight: 700; font-size: 15px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .name-primary { font-weight: 500; }
+    .name-secondary { font-size: 11px; color: var(--color-neutral-500); margin-top: 1px; font-family: var(--font-family-mono); }
+    .site-count-link { color: var(--color-primary-600); font-weight: 600; text-decoration: none; }
+    .site-count-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- ══════════════ SIDEBAR ══════════════ -->
+  <nav class="sidebar" aria-label="Main navigation">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"><span class="material-icons">my_location</span></div>
+      <div class="sidebar-logo-text">
+        <div class="sidebar-logo-name">Define Logistics</div>
+        <div class="sidebar-logo-sub">Barycenter Platform</div>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section">Main</div>
+      <a href="screen-01-dashboard.html" class="nav-item">
+        <span class="material-icons">dashboard</span><span class="nav-item-label">Dashboard</span>
+      </a>
+      <a href="screen-02-companies.html" class="nav-item active" aria-current="page">
+        <span class="material-icons">domain</span><span class="nav-item-label">Companies</span>
+      </a>
+      <a href="screen-03-sites.html" class="nav-item">
+        <span class="material-icons">location_on</span><span class="nav-item-label">Sites</span>
+      </a>
+      <div class="nav-section">Analytics</div>
+      <a href="screen-04-barycenter.html" class="nav-item">
+        <span class="material-icons">my_location</span><span class="nav-item-label">Barycenter</span>
+      </a>
+      <a href="screen-05-map.html" class="nav-item">
+        <span class="material-icons">map</span><span class="nav-item-label">Map View</span>
+      </a>
+    </div>
+    <div class="sidebar-footer">
+      <div class="sidebar-collapse-btn"><span class="material-icons">chevron_left</span></div>
+    </div>
+  </nav>
+
+  <!-- ══════════════ TOPBAR ══════════════ -->
+  <header class="topbar">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="screen-01-dashboard.html">Home</a>
+      <span class="material-icons" aria-hidden="true">chevron_right</span>
+      <span aria-current="page">Companies</span>
+    </nav>
+    <div class="topbar-search" role="search">
+      <span class="material-icons" aria-hidden="true">search</span>
+      <input type="search" placeholder="Search…" aria-label="Global search" />
+    </div>
+    <div class="topbar-end">
+      <button class="topbar-icon-btn" aria-label="Notifications"><span class="material-icons">notifications_none</span></button>
+      <div class="user-avatar" tabindex="0" role="button" aria-label="User menu">JD</div>
+    </div>
+  </header>
+
+  <!-- ══════════════ CONTENT ══════════════ -->
+  <main class="content-area" id="main-content">
+    <div class="page-content page-enter">
+
+      <!-- Page header -->
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Companies</h1>
+          <p class="page-subtitle">14 companies · 38 consumption sites total</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary" onclick="document.getElementById('createModal').style.display='flex'" aria-haspopup="dialog">
+            <span class="material-icons">add</span>
+            New Company
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter bar -->
+      <div class="card" style="overflow:visible;">
+        <div class="filter-row">
+          <div class="search-field">
+            <span class="material-icons search-icon" aria-hidden="true">search</span>
+            <input class="form-control" type="search" placeholder="Search companies…" aria-label="Search companies" />
+          </div>
+          <label class="sr-only" for="statusFilter">Filter by status</label>
+          <select id="statusFilter" class="form-control filter-select" aria-label="Filter by status">
+            <option>All Statuses</option>
+            <option>Active</option>
+            <option>Inactive</option>
+            <option>Pending</option>
+          </select>
+          <label class="sr-only" for="typeFilter">Filter by type</label>
+          <select id="typeFilter" class="form-control filter-select" aria-label="Filter by type">
+            <option>All Types</option>
+            <option>Shipper</option>
+            <option>Carrier</option>
+            <option>Both</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="data-table-wrapper">
+        <table class="data-table" aria-label="Companies list">
+          <thead>
+            <tr>
+              <th scope="col" class="sortable">Company <span class="material-icons" style="font-size:12px; vertical-align:middle; opacity:0.4;">unfold_more</span></th>
+              <th scope="col">Type</th>
+              <th scope="col">Status</th>
+              <th scope="col" class="sortable">Sites <span class="material-icons" style="font-size:12px; vertical-align:middle; opacity:0.4;">unfold_more</span></th>
+              <th scope="col" class="sortable">Traffic <span class="material-icons" style="font-size:12px; vertical-align:middle; color:var(--color-primary-600);">arrow_downward</span></th>
+              <th scope="col">Contact</th>
+              <th scope="col" class="actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+
+            <tr class="selected">
+              <td>
+                <div style="display:flex; align-items:center; gap:12px;">
+                  <div class="company-initial" style="background:#1F4E79;">A</div>
+                  <div>
+                    <div class="name-primary">Acme Corporation</div>
+                    <div class="name-secondary">12-3456789</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="badge badge-neutral">SHIPPER</span></td>
+              <td><span class="badge badge-success">ACTIVE</span></td>
+              <td><a href="screen-03-sites.html" class="site-count-link">4</a></td>
+              <td class="mono">12.5k t</td>
+              <td>
+                <div>
+                  <div style="font-size:12px;">Jane Smith</div>
+                  <div style="font-size:11px; color:var(--color-neutral-500);">j@acme.com</div>
+                </div>
+              </td>
+              <td class="actions">
+                <button class="btn btn-icon" aria-label="Edit Acme Corporation" title="Edit"><span class="material-icons">edit</span></button>
+                <a href="screen-03-sites.html" class="btn btn-icon" aria-label="View sites for Acme Corporation" title="Sites"><span class="material-icons">location_on</span></a>
+                <a href="screen-04-barycenter.html" class="btn btn-icon" aria-label="Barycenter for Acme Corporation" title="Calculate barycenter"><span class="material-icons">my_location</span></a>
+                <button class="btn btn-icon" style="color:var(--color-danger-600);" aria-label="Delete Acme Corporation" title="Delete" onclick="document.getElementById('deleteModal').style.display='flex'"><span class="material-icons">delete_outline</span></button>
+              </td>
+            </tr>
+
+            <tr>
+              <td>
+                <div style="display:flex; align-items:center; gap:12px;">
+                  <div class="company-initial" style="background:#2E6DA4;">G</div>
+                  <div><div class="name-primary">Global Freight Inc</div></div>
+                </div>
+              </td>
+              <td><span class="badge badge-neutral">CARRIER</span></td>
+              <td><span class="badge badge-success">ACTIVE</span></td>
+              <td><a href="screen-03-sites.html" class="site-count-link">12</a></td>
+              <td class="mono">47.8k t</td>
+              <td><span class="muted">—</span></td>
+              <td class="actions">
+                <button class="btn btn-icon" title="Edit"><span class="material-icons">edit</span></button>
+                <a href="screen-03-sites.html" class="btn btn-icon" title="Sites"><span class="material-icons">location_on</span></a>
+                <a href="screen-04-barycenter.html" class="btn btn-icon" title="Barycenter"><span class="material-icons">my_location</span></a>
+                <button class="btn btn-icon" style="color:var(--color-danger-600);" title="Delete"><span class="material-icons">delete_outline</span></button>
+              </td>
+            </tr>
+
+            <tr>
+              <td>
+                <div style="display:flex; align-items:center; gap:12px;">
+                  <div class="company-initial" style="background:#0891B2;">F</div>
+                  <div><div class="name-primary">FastLog Inc</div></div>
+                </div>
+              </td>
+              <td><span class="badge badge-primary">BOTH</span></td>
+              <td><span class="badge badge-success">ACTIVE</span></td>
+              <td><a href="screen-03-sites.html" class="site-count-link">7</a></td>
+              <td class="mono">21.6k t</td>
+              <td><span class="muted">—</span></td>
+              <td class="actions">
+                <button class="btn btn-icon" title="Edit"><span class="material-icons">edit</span></button>
+                <a href="screen-03-sites.html" class="btn btn-icon" title="Sites"><span class="material-icons">location_on</span></a>
+                <a href="screen-04-barycenter.html" class="btn btn-icon" title="Barycenter"><span class="material-icons">my_location</span></a>
+                <button class="btn btn-icon" style="color:var(--color-danger-600);" title="Delete"><span class="material-icons">delete_outline</span></button>
+              </td>
+            </tr>
+
+            <tr>
+              <td>
+                <div style="display:flex; align-items:center; gap:12px;">
+                  <div class="company-initial" style="background:#16A34A;">M</div>
+                  <div><div class="name-primary">Metro Moves</div></div>
+                </div>
+              </td>
+              <td><span class="badge badge-primary">BOTH</span></td>
+              <td><span class="badge badge-success">ACTIVE</span></td>
+              <td><a href="screen-03-sites.html" class="site-count-link">3</a></td>
+              <td class="mono">8.2k t</td>
+              <td><span class="muted">—</span></td>
+              <td class="actions">
+                <button class="btn btn-icon" title="Edit"><span class="material-icons">edit</span></button>
+                <a href="screen-03-sites.html" class="btn btn-icon" title="Sites"><span class="material-icons">location_on</span></a>
+                <a href="screen-04-barycenter.html" class="btn btn-icon" title="Barycenter"><span class="material-icons">my_location</span></a>
+                <button class="btn btn-icon" style="color:var(--color-danger-600);" title="Delete"><span class="material-icons">delete_outline</span></button>
+              </td>
+            </tr>
+
+            <tr>
+              <td>
+                <div style="display:flex; align-items:center; gap:12px;">
+                  <div class="company-initial" style="background:#D97706;">B</div>
+                  <div>
+                    <div class="name-primary">BayArea Transport</div>
+                    <div class="name-secondary">98-7654321</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="badge badge-neutral">CARRIER</span></td>
+              <td><span class="badge badge-neutral">INACTIVE</span></td>
+              <td><span class="muted">—</span></td>
+              <td><span class="muted">—</span></td>
+              <td>
+                <div>
+                  <div style="font-size:12px;">Tom Baker</div>
+                  <div style="font-size:11px; color:var(--color-neutral-500);">t@bay.com</div>
+                </div>
+              </td>
+              <td class="actions">
+                <button class="btn btn-icon" title="Edit"><span class="material-icons">edit</span></button>
+                <a href="screen-03-sites.html" class="btn btn-icon" title="Sites"><span class="material-icons">location_on</span></a>
+                <a href="screen-04-barycenter.html" class="btn btn-icon" title="Barycenter"><span class="material-icons">my_location</span></a>
+                <button class="btn btn-icon" style="color:var(--color-danger-600);" title="Delete"><span class="material-icons">delete_outline</span></button>
+              </td>
+            </tr>
+
+            <tr>
+              <td>
+                <div style="display:flex; align-items:center; gap:12px;">
+                  <div class="company-initial" style="background:#7C3AED;">A</div>
+                  <div><div class="name-primary">Apex Logistics</div></div>
+                </div>
+              </td>
+              <td><span class="badge badge-neutral">CARRIER</span></td>
+              <td><span class="badge badge-warning">PENDING</span></td>
+              <td><span class="muted">—</span></td>
+              <td><span class="muted">—</span></td>
+              <td><span class="muted">—</span></td>
+              <td class="actions">
+                <button class="btn btn-icon" title="Edit"><span class="material-icons">edit</span></button>
+                <a href="screen-03-sites.html" class="btn btn-icon" title="Sites"><span class="material-icons">location_on</span></a>
+                <a href="screen-04-barycenter.html" class="btn btn-icon" title="Barycenter"><span class="material-icons">my_location</span></a>
+                <button class="btn btn-icon" style="color:var(--color-danger-600);" title="Delete"><span class="material-icons">delete_outline</span></button>
+              </td>
+            </tr>
+
+          </tbody>
+        </table>
+        <div class="pagination-bar">
+          <span>Showing 1–6 of 14 companies</span>
+          <div class="pagination-controls" role="navigation" aria-label="Pagination">
+            <button class="page-btn" disabled aria-label="Previous page"><span class="material-icons" style="font-size:18px;">chevron_left</span></button>
+            <button class="page-btn active" aria-label="Page 1" aria-current="page">1</button>
+            <button class="page-btn" aria-label="Page 2">2</button>
+            <button class="page-btn" aria-label="Page 3">3</button>
+            <button class="page-btn" aria-label="Next page"><span class="material-icons" style="font-size:18px;">chevron_right</span></button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+</div>
+
+<!-- ═══════════════════════════════════ CREATE COMPANY MODAL -->
+<div id="createModal" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="createModalTitle" onclick="if(event.target===this) this.style.display='none'">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 id="createModalTitle">New Company</h2>
+      <button class="btn btn-icon" onclick="document.getElementById('createModal').style.display='none'" aria-label="Close dialog">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="grid-2">
+        <div class="form-group" style="grid-column:span 2;">
+          <label class="form-label" for="cName">Company Name *</label>
+          <input id="cName" class="form-control" type="text" placeholder="e.g. Acme Corporation" autocomplete="organization" />
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top:16px;">
+        <div class="form-group">
+          <label class="form-label" for="cType">Type *</label>
+          <select id="cType" class="form-control">
+            <option>Shipper</option>
+            <option>Carrier</option>
+            <option>Both</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="cTaxId">Tax ID</label>
+          <input id="cTaxId" class="form-control" type="text" placeholder="e.g. 12-3456789" />
+        </div>
+      </div>
+
+      <hr class="divider" />
+      <p class="section-title">Contact Information</p>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label" for="cContact">Contact Name</label>
+          <input id="cContact" class="form-control" type="text" autocomplete="name" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="cEmail">Contact Email</label>
+          <input id="cEmail" class="form-control" type="email" autocomplete="email" />
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top:16px;">
+        <label class="form-label" for="cPhone">Contact Phone</label>
+        <input id="cPhone" class="form-control" type="tel" style="max-width:280px;" autocomplete="tel" />
+      </div>
+
+      <div class="form-group" style="margin-top:16px;">
+        <label class="form-label" for="cNotes">Notes</label>
+        <textarea id="cNotes" class="form-control" rows="3" placeholder="Optional notes…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('createModal').style.display='none'">Cancel</button>
+      <button class="btn btn-primary">
+        <span class="material-icons">add</span>
+        Create Company
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ DELETE CONFIRM MODAL -->
+<div id="deleteModal" class="modal-overlay" style="display:none;" role="alertdialog" aria-modal="true" aria-labelledby="deleteModalTitle" onclick="if(event.target===this) this.style.display='none'">
+  <div class="modal modal-sm" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 id="deleteModalTitle">Delete Company</h2>
+      <button class="btn btn-icon" onclick="document.getElementById('deleteModal').style.display='none'" aria-label="Cancel deletion">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p>Are you sure you want to delete <strong>Acme Corporation</strong>?</p>
+      <p style="margin-top:12px; color:var(--color-danger-600); font-size:var(--font-size-small);">
+        <span class="material-icons" style="font-size:14px; vertical-align:middle;">warning</span>
+        This will also delete all 4 associated consumption sites and cannot be undone.
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('deleteModal').style.display='none'">Cancel</button>
+      <button class="btn btn-danger" onclick="document.getElementById('deleteModal').style.display='none'">
+        <span class="material-icons">delete</span>
+        Delete
+      </button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,3 +1,59 @@
+### IntelliJ IDEA ###
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### Eclipse ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### Mac OS ###
+.DS_Store
+
+### CI/CD and Secrets ###
+.env
+.env.local
+.env.*.local
+*.tfvars
+!*.tfvars.example
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+tfplan
+build.env
+
+### Docker ###
+docker/*.log
+
+### Node / Angular ###
+src/ui/angular-app/node_modules/
+src/ui/angular-app/dist/
+src/ui/angular-app/coverage/
+src/ui/angular-app/.angular/cache/
+
+### Maven / Spring Boot ###
+logistics-api/target/
+logistics-api/.m2/
+
 # Compiled class file
 *.class
 

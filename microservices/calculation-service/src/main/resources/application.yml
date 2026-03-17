@@ -1,0 +1,115 @@
+# =============================================================================
+# Calculation Service — application configuration
+# =============================================================================
+
+spring:
+  application:
+    name: calculation-service
+
+  datasource:
+    url:      ${CALC_DB_URL:jdbc:postgresql://localhost:5432/calculation_db}
+    username: ${CALC_DB_USER:calc_svc}
+    password: ${CALC_DB_PASSWORD:changeme}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      pool-name:         CalcHikariPool
+      maximum-pool-size: ${HIKARI_MAX_POOL:10}
+      minimum-idle:      2
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        default_schema: calculation
+
+  flyway:
+    schemas:           calculation
+    locations:         classpath:db/migration
+    baseline-on-migrate: true
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer:   org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        enable.idempotence: true
+        spring.json.add.type.headers: true
+    consumer:
+      group-id: calculation-service
+      key-deserializer:   org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      auto-offset-reset: earliest
+      properties:
+        spring.json.trusted.packages: "com.logistics.shared.domain.event"
+
+server:
+  port: ${SERVER_PORT:8083}
+  shutdown: graceful
+
+management:
+  server:
+    port: 8093
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLE_RATE:1.0}
+  zipkin:
+    tracing:
+      endpoint: ${ZIPKIN_ENDPOINT:http://localhost:9411/api/v2/spans}
+
+# Feign client configuration
+feign:
+  client:
+    config:
+      site-service:
+        connectTimeout: 5000
+        readTimeout:    10000
+        loggerLevel:    BASIC
+  circuitbreaker:
+    enabled: true
+
+# Resilience4j — circuit breaker for Site Service calls
+resilience4j:
+  circuitbreaker:
+    instances:
+      site-service:
+        sliding-window-size:            10
+        failure-rate-threshold:         50
+        wait-duration-in-open-state:    15s
+        permitted-number-of-calls-in-half-open-state: 3
+  retry:
+    instances:
+      site-service:
+        max-attempts:  3
+        wait-duration: 1s
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    root:                              INFO
+    com.logistics.calculation:         DEBUG
+    org.springframework.kafka:         WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId:-},%X{spanId:-}] %logger{36} - %msg%n"

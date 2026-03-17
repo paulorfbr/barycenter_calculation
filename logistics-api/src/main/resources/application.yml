@@ -1,0 +1,100 @@
+spring:
+  application:
+    name: logistics-api
+
+  # Jackson serialisation configuration
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+      indent-output: false
+    deserialization:
+      fail-on-unknown-properties: false
+    default-property-inclusion: non_null
+    time-zone: UTC
+
+  # Spring MVC
+  mvc:
+    # Return 404 when no handler is found (Angular SPA fallback is handled
+    # explicitly in SpaFallbackController, not by the default servlet)
+    throw-exception-if-no-handler-found: false
+  web:
+    resources:
+      # Serve static content from classpath:/static/ (Angular build output)
+      static-locations: classpath:/static/
+      cache:
+        period: 0          # dev default — override in production profile
+
+# Embedded server
+server:
+  port: 8080
+  servlet:
+    context-path: /
+  compression:
+    enabled: true
+    mime-types: text/html,text/css,application/javascript,application/json
+    min-response-size: 1024
+  error:
+    include-message: always
+    include-binding-errors: always
+
+# Spring Boot Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# SpringDoc / OpenAPI
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: alpha
+    tags-sorter: alpha
+    try-it-out-enabled: true
+  info:
+    title: Logistics Barycenter API
+    description: >
+      REST API for the Define Company Logistic Place application.
+      Provides company management, consumption site management,
+      barycenter calculation, and dashboard aggregation endpoints.
+    version: "1.0.0"
+    contact:
+      name: Logistics Platform Team
+
+# Application-level configuration
+logistics:
+  seed-data:
+    enabled: true   # loads SampleDataSeeder on startup in dev / test
+  cors:
+    allowed-origins:
+      - "http://localhost:4200"   # Angular dev server
+      - "http://localhost:8080"   # same-origin when served from Spring Boot
+
+---
+# Production profile overrides
+spring:
+  config:
+    activate:
+      on-profile: production
+  web:
+    resources:
+      cache:
+        period: 604800   # 7 days for static assets in production
+
+server:
+  port: 8080
+
+logistics:
+  cors:
+    allowed-origins: []   # no cross-origin needed; Angular is served from same origin
+
+management:
+  endpoint:
+    health:
+      show-details: never

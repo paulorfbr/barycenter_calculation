@@ -1,0 +1,191 @@
+/**
+ * =============================================================================
+ * DESIGN TOKENS — Logistics Barycenter Application
+ * Figma Design System Reference
+ *
+ * File: design-tokens.css
+ * Usage: Import into any prototype HTML file. Source of truth for all
+ *        visual properties. Maps 1:1 to tokens.scss in the Angular app.
+ * =============================================================================
+ */
+
+:root {
+
+  /* ---------------------------------------------------------------------------
+   * COLOR — PRIMARY PALETTE (Brand Navy Blue)
+   * Role: Navigation, CTAs, interactive elements, brand identity
+   * ---------------------------------------------------------------------------*/
+  --color-primary-900: #0D2137;  /* Sidebar background, darkest chrome */
+  --color-primary-800: #1A3A5C;  /* Navigation active state, headers */
+  --color-primary-700: #1F4E79;  /* Button primary fill */
+  --color-primary-600: #2E6DA4;  /* Button hover, link color */
+  --color-primary-400: #5B9BD5;  /* Accent highlights, selected row tint */
+  --color-primary-100: #DDEEFF;  /* Active sidebar item background */
+  --color-primary-050: #F0F7FF;  /* Table row alternate, card bg tint */
+
+  /* ---------------------------------------------------------------------------
+   * COLOR — NEUTRAL PALETTE (Grays)
+   * Role: Text, borders, backgrounds, surface hierarchy
+   * ---------------------------------------------------------------------------*/
+  --color-neutral-900: #111827;  /* Body text, headings */
+  --color-neutral-700: #374151;  /* Secondary text, labels */
+  --color-neutral-500: #6B7280;  /* Placeholder, disabled, captions */
+  --color-neutral-400: #9CA3AF;  /* Very muted text */
+  --color-neutral-300: #D1D5DB;  /* Borders, dividers */
+  --color-neutral-100: #F3F4F6;  /* Page background */
+  --color-neutral-000: #FFFFFF;  /* Card surface, input background */
+
+  /* ---------------------------------------------------------------------------
+   * COLOR — SEMANTIC: SUCCESS
+   * Role: Active status, positive metrics, delivered state
+   * ---------------------------------------------------------------------------*/
+  --color-success-600: #16A34A;
+  --color-success-100: #DCFCE7;
+
+  /* ---------------------------------------------------------------------------
+   * COLOR — SEMANTIC: WARNING
+   * Role: In-transit, caution, consumption site markers
+   * ---------------------------------------------------------------------------*/
+  --color-warning-600: #D97706;
+  --color-warning-100: #FEF3C7;
+
+  /* ---------------------------------------------------------------------------
+   * COLOR — SEMANTIC: DANGER
+   * Role: Errors, overdue, delete actions
+   * ---------------------------------------------------------------------------*/
+  --color-danger-600:  #DC2626;
+  --color-danger-100:  #FEE2E2;
+
+  /* ---------------------------------------------------------------------------
+   * COLOR — SEMANTIC: INFO
+   * Role: Informational messages, candidate status, pending
+   * ---------------------------------------------------------------------------*/
+  --color-info-600:    #0891B2;
+  --color-info-100:    #CFFAFE;
+
+  /* ---------------------------------------------------------------------------
+   * TYPOGRAPHY — FONT FAMILIES
+   * ---------------------------------------------------------------------------*/
+  --font-family-base: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-family-mono: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', monospace;
+
+  /* ---------------------------------------------------------------------------
+   * TYPOGRAPHY — TYPE SCALE
+   * 8px base grid. All values derived from 16px root.
+   * ---------------------------------------------------------------------------*/
+  --font-size-display: 1.75rem;    /* 28px — Screen titles */
+  --font-size-h1:      1.375rem;   /* 22px — Page headings */
+  --font-size-h2:      1.125rem;   /* 18px — Section/card titles */
+  --font-size-h3:      0.9375rem;  /* 15px — Sub-section labels */
+  --font-size-body:    0.875rem;   /* 14px — General body copy */
+  --font-size-small:   0.75rem;    /* 12px — Table meta, captions */
+  --font-size-mono:    0.8125rem;  /* 13px — Coordinates, IDs */
+  --font-size-label:   0.6875rem;  /* 11px — Form labels, column headers */
+
+  /* ---------------------------------------------------------------------------
+   * SPACING — 8px Base Grid
+   * All margins, paddings, gaps use multiples of 4px
+   * ---------------------------------------------------------------------------*/
+  --space-1:   0.25rem;   /*  4px */
+  --space-2:   0.5rem;    /*  8px */
+  --space-3:   0.75rem;   /* 12px */
+  --space-4:   1rem;      /* 16px */
+  --space-5:   1.25rem;   /* 20px */
+  --space-6:   1.5rem;    /* 24px */
+  --space-8:   2rem;      /* 32px */
+  --space-10:  2.5rem;    /* 40px */
+  --space-12:  3rem;      /* 48px */
+
+  /* ---------------------------------------------------------------------------
+   * BORDER RADIUS
+   * ---------------------------------------------------------------------------*/
+  --radius-1:    4px;      /* Inputs, table cells */
+  --radius-2:    6px;      /* Buttons, badges */
+  --radius-3:    8px;      /* Cards, panels */
+  --radius-4:    12px;     /* Modals, large containers */
+  --radius-full: 9999px;   /* Avatars, pill badges, FAB */
+
+  /* ---------------------------------------------------------------------------
+   * ELEVATION — Box Shadows
+   * Level 0: Flat (tables, inputs)
+   * Level 1: Cards, dropdowns
+   * Level 2: Floating panels, tooltips
+   * Level 3: Modals, dialogs
+   * Level 4: Notifications, toasts
+   * ---------------------------------------------------------------------------*/
+  --shadow-0: none;
+  --shadow-1: 0 1px 3px rgba(0, 0, 0, 0.12);
+  --shadow-2: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --shadow-3: 0 8px 24px rgba(0, 0, 0, 0.18);
+  --shadow-4: 0 12px 32px rgba(0, 0, 0, 0.22);
+
+  /* ---------------------------------------------------------------------------
+   * LAYOUT CONSTANTS
+   * ---------------------------------------------------------------------------*/
+  --sidebar-width-expanded:  240px;
+  --sidebar-width-collapsed: 64px;
+  --topbar-height:           56px;
+
+  /* ---------------------------------------------------------------------------
+   * ANIMATION DURATIONS
+   * Motion principle: Fast and purposeful. Communicates state, not decoration.
+   * ---------------------------------------------------------------------------*/
+  --anim-button-hover:    100ms;   /* ease-out */
+  --anim-sidebar-toggle:  200ms;   /* ease-in-out */
+  --anim-modal-open:      180ms;   /* ease-out, scale 0.95 → 1 */
+  --anim-modal-close:     140ms;   /* ease-in, scale 1 → 0.95 */
+  --anim-table-row:        80ms;   /* ease-out */
+  --anim-toast-slide:     220ms;   /* ease-out, slide from right */
+  --anim-page-transition: 150ms;   /* ease-in-out, fade */
+  --anim-chart-load:      400ms;   /* ease-out */
+}
+
+/*
+ * =============================================================================
+ * DARK MODE TOKENS
+ * Surfaces invert: white -> neutral-900, neutral-100 -> neutral-800
+ * Text inverts: neutral-900 -> neutral-000
+ * Shadows replaced by subtle 1px neutral-700 borders
+ * Primary palette lightens slightly for contrast on dark surfaces
+ * =============================================================================
+ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-neutral-000: #1F2937;  /* Card surface (was white) */
+    --color-neutral-100: #111827;  /* Page background */
+    --color-neutral-300: #374151;  /* Borders, dividers */
+    --color-neutral-500: #9CA3AF;  /* Placeholder, disabled */
+    --color-neutral-700: #D1D5DB;  /* Secondary text */
+    --color-neutral-900: #F9FAFB;  /* Body text (inverted) */
+
+    --color-primary-900: #0D2137;  /* Sidebar stays dark */
+    --color-primary-050: #1A3A5C;  /* Tint backgrounds */
+    --color-primary-100: #1F4E79;  /* Active item bg */
+
+    --shadow-1: 0 0 0 1px #374151;
+    --shadow-2: 0 0 0 1px #374151, 0 4px 12px rgba(0, 0, 0, 0.4);
+    --shadow-3: 0 0 0 1px #374151, 0 8px 24px rgba(0, 0, 0, 0.5);
+    --shadow-4: 0 0 0 1px #374151, 0 12px 32px rgba(0, 0, 0, 0.6);
+  }
+}
+
+/*
+ * =============================================================================
+ * FIGMA EXPORT ANNOTATIONS
+ *
+ * When creating Figma variables from this file:
+ *
+ * Variable Collections:
+ *   1. "Colors/Primary"    — all --color-primary-* tokens
+ *   2. "Colors/Neutral"    — all --color-neutral-* tokens
+ *   3. "Colors/Semantic"   — success, warning, danger, info tokens
+ *   4. "Typography"        — font size, family tokens
+ *   5. "Spacing"           — all --space-* tokens
+ *   6. "Radius"            — all --radius-* tokens
+ *   7. "Shadows"           — all --shadow-* tokens
+ *   8. "Layout"            — sidebar, topbar constants
+ *   9. "Animation"         — all --anim-* tokens
+ *
+ * Modes: Create "Light" and "Dark" modes for Color collections.
+ * =============================================================================
+ */

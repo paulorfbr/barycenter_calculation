@@ -1,0 +1,79 @@
+{
+  "title": "Logistics Platform — Service Overview",
+  "uid":   "logistics-overview",
+  "schemaVersion": 38,
+  "refresh": "15s",
+  "time": { "from": "now-1h", "to": "now" },
+  "panels": [
+    {
+      "id": 1, "type": "stat", "title": "Company Service — HTTP RPS",
+      "gridPos": { "x": 0, "y": 0, "w": 4, "h": 4 },
+      "targets": [{
+        "expr": "sum(rate(http_server_requests_seconds_count{job='company-service'}[1m]))",
+        "legendFormat": "req/s"
+      }]
+    },
+    {
+      "id": 2, "type": "stat", "title": "Site Service — HTTP RPS",
+      "gridPos": { "x": 4, "y": 0, "w": 4, "h": 4 },
+      "targets": [{
+        "expr": "sum(rate(http_server_requests_seconds_count{job='site-service'}[1m]))",
+        "legendFormat": "req/s"
+      }]
+    },
+    {
+      "id": 3, "type": "stat", "title": "Calculation Service — HTTP RPS",
+      "gridPos": { "x": 8, "y": 0, "w": 4, "h": 4 },
+      "targets": [{
+        "expr": "sum(rate(http_server_requests_seconds_count{job='calculation-service'}[1m]))",
+        "legendFormat": "req/s"
+      }]
+    },
+    {
+      "id": 4, "type": "stat", "title": "Dashboard Service — HTTP RPS",
+      "gridPos": { "x": 12, "y": 0, "w": 4, "h": 4 },
+      "targets": [{
+        "expr": "sum(rate(http_server_requests_seconds_count{job='dashboard-service'}[1m]))",
+        "legendFormat": "req/s"
+      }]
+    },
+    {
+      "id": 5, "type": "timeseries", "title": "P99 Latency — All Services (ms)",
+      "gridPos": { "x": 0, "y": 4, "w": 24, "h": 8 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{job='company-service'}[5m])) by (le)) * 1000",
+          "legendFormat": "company-service p99"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{job='site-service'}[5m])) by (le)) * 1000",
+          "legendFormat": "site-service p99"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{job='calculation-service'}[5m])) by (le)) * 1000",
+          "legendFormat": "calculation-service p99"
+        }
+      ]
+    },
+    {
+      "id": 6, "type": "timeseries", "title": "JVM Heap Used — All Services (MB)",
+      "gridPos": { "x": 0, "y": 12, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "jvm_memory_used_bytes{area='heap',job='company-service'} / 1048576",     "legendFormat": "company" },
+        { "expr": "jvm_memory_used_bytes{area='heap',job='site-service'} / 1048576",        "legendFormat": "site" },
+        { "expr": "jvm_memory_used_bytes{area='heap',job='calculation-service'} / 1048576", "legendFormat": "calculation" },
+        { "expr": "jvm_memory_used_bytes{area='heap',job='dashboard-service'} / 1048576",   "legendFormat": "dashboard" }
+      ]
+    },
+    {
+      "id": 7, "type": "timeseries", "title": "HTTP 5xx Error Rate — All Services",
+      "gridPos": { "x": 12, "y": 12, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum(rate(http_server_requests_seconds_count{status=~'5..'}[5m])) by (job)",
+          "legendFormat": "{{job}}"
+        }
+      ]
+    }
+  ]
+}

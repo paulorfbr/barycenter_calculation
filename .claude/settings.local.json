@@ -1,0 +1,64 @@
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(git status)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(npm test *)",
+      "Bash(npm run lint *)",
+      "Bash(npm run build)",
+      "Bash(ls *)",
+      "Bash(cat *)",
+      "Bash(wc *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(mkdir -p /c/Users/User/IdeaProjects/define-company-logistic-place/src/ui/design && mkdir -p /c/Users/User/IdeaProjects/define-company-logistic-place/src/ui/components && mkdir -p /c/Users/User/IdeaProjects/define-company-logistic-place/src/ui/screens && mkdir -p /c/Users/User/IdeaProjects/define-company-logistic-place/docs/design && echo \"Directories created\")",
+      "Bash(mkdir -p /c/Users/User/IdeaProjects/define-company-logistic-place/src/ui/angular-app/src/app/core/models\nmkdir -p /c/Users/User/IdeaProjects/define-company-logistic-place/src/ui/angular-app/src/app/core/services\nmkdir -p /c/Users/User/IdeaProjects/define-company-logistic-place/src/ui/angular-app/src/app/shared/components/sidebar\nmkdir -p /c/Users/User/IdeaProjects/define-company-logistic-place/src/ui/angular-app/src/app/shared/components/topbar\nmkdir -p /c/Users/User/IdeaProjects/define-company-logistic-place/src/ui/angular-app/src/app/shared/components/status-badge\nmkdir -p /c/Users/User/IdeaProjects/define-company-logistic-place/src/ui/angular-app/src/app/shared/components/kpi-card\nmkdir -p /c/Users/User/IdeaProjects/define-company-logistic-place/src/ui/angular-app/src/app/shared/components/toast\nmkdir -p /c/Users/User/IdeaProjects/define-company-logistic-place/src/ui/angular-app/src/app/features/dashboard\nmkdir -p /c/Users/User/IdeaProjects/define-company-logistic-place/src/ui/angular-app/src/app/features/sites\nmkdir -p /c/Users/User/IdeaProjects/define-company-logistic-place/src/ui/angular-app/src/app/features/barycenter\nmkdir -p /c/Users/User/IdeaProjects/define-company-logistic-place/src/ui/angular-app/src/app/features/companies\nmkdir -p /c/Users/User/IdeaProjects/define-company-logistic-place/src/ui/angular-app/src/assets\nmkdir -p /c/Users/User/IdeaProjects/define-company-logistic-place/src/ui/angular-app/src/styles\necho \"Directories created\")",
+      "Bash(node --version && npm --version 2>/dev/null || echo \"Node/npm not found in current PATH\")",
+      "Bash(cd /c/Users/User/IdeaProjects/define-company-logistic-place/src/ui/angular-app && npx ng build --configuration development 2>&1)",
+      "Bash(cp -r /c/Users/User/IdeaProjects/define-company-logistic-place/src/com/logistics/domain /c/Users/User/IdeaProjects/define-company-logistic-place/logistics-api/src/main/java/com/logistics/\ncp -r /c/Users/User/IdeaProjects/define-company-logistic-place/src/com/logistics/application /c/Users/User/IdeaProjects/define-company-logistic-place/logistics-api/src/main/java/com/logistics/\ncp -r /c/Users/User/IdeaProjects/define-company-logistic-place/src/com/logistics/infrastructure/calculation /c/Users/User/IdeaProjects/define-company-logistic-place/logistics-api/src/main/java/com/logistics/infrastructure/\ncp -r /c/Users/User/IdeaProjects/define-company-logistic-place/src/com/logistics/infrastructure/persistence /c/Users/User/IdeaProjects/define-company-logistic-place/logistics-api/src/main/java/com/logistics/infrastructure/\necho \"Domain and application layers copied\")",
+      "Bash(cp -r /c/Users/User/IdeaProjects/define-company-logistic-place/src/ui/angular-app/dist/logistics-barycenter-spa/browser/. /c/Users/User/IdeaProjects/define-company-logistic-place/logistics-api/src/main/resources/static/\necho \"Angular build files copied to Spring Boot static resources\"\nls /c/Users/User/IdeaProjects/define-company-logistic-place/logistics-api/src/main/resources/static/)",
+      "Bash(cd /c/Users/User/IdeaProjects/define-company-logistic-place/logistics-api && mvn compile -q 2>&1 | tail -50)",
+      "Bash(java -version)",
+      "Read(//c/Users/User/.m2/repository/org/springframework/**)",
+      "Bash(BASE=/c/Users/User/IdeaProjects/define-company-logistic-place\nmkdir -p \\\\\n  \"$BASE/microservices/company-service/src/main/java/com/logistics/company/domain/model\" \\\\\n  \"$BASE/microservices/company-service/src/main/java/com/logistics/company/domain/event\" \\\\\n  \"$BASE/microservices/company-service/src/main/java/com/logistics/company/application/port/in\" \\\\\n  \"$BASE/microservices/company-service/src/main/java/com/logistics/company/application/port/out\" \\\\\n  \"$BASE/microservices/company-service/src/main/java/com/logistics/company/application/service\" \\\\\n  \"$BASE/microservices/company-service/src/main/java/com/logistics/company/infrastructure/persistence/entity\" \\\\\n  \"$BASE/microservices/company-service/src/main/java/com/logistics/company/infrastructure/persistence/repository\" \\\\\n  \"$BASE/microservices/company-service/src/main/java/com/logistics/company/infrastructure/messaging\" \\\\\n  \"$BASE/microservices/company-service/src/main/java/com/logistics/company/web/controller\" \\\\\n  \"$BASE/microservices/company-service/src/main/java/com/logistics/company/web/dto\" \\\\\n  \"$BASE/microservices/company-service/src/main/java/com/logistics/company/web/mapper\" \\\\\n  \"$BASE/microservices/company-service/src/main/resources/db/migration\" \\\\\n  \"$BASE/microservices/company-service/src/test/java/com/logistics/company/application/service\" \\\\\n  \"$BASE/microservices/company-service/src/test/java/com/logistics/company/web/controller\" \\\\\n  \\\\\n  \"$BASE/microservices/site-service/src/main/java/com/logistics/site/domain/model\" \\\\\n  \"$BASE/microservices/site-service/src/main/java/com/logistics/site/domain/event\" \\\\\n  \"$BASE/microservices/site-service/src/main/java/com/logistics/site/application/port/in\" \\\\\n  \"$BASE/microservices/site-service/src/main/java/com/logistics/site/application/port/out\" \\\\\n  \"$BASE/microservices/site-service/src/main/java/com/logistics/site/application/service\" \\\\\n  \"$BASE/microservices/site-service/src/main/java/com/logistics/site/infrastructure/persistence/entity\" \\\\\n  \"$BASE/microservices/site-service/src/main/java/com/logistics/site/infrastructure/persistence/repository\" \\\\\n  \"$BASE/microservices/site-service/src/main/java/com/logistics/site/infrastructure/client\" \\\\\n  \"$BASE/microservices/site-service/src/main/java/com/logistics/site/web/controller\" \\\\\n  \"$BASE/microservices/site-service/src/main/java/com/logistics/site/web/dto\" \\\\\n  \"$BASE/microservices/site-service/src/main/resources/db/migration\" \\\\\n  \\\\\n  \"$BASE/microservices/calculation-service/src/main/java/com/logistics/calculation/domain/algorithm\" \\\\\n  \"$BASE/microservices/calculation-service/src/main/java/com/logistics/calculation/domain/model\" \\\\\n  \"$BASE/microservices/calculation-service/src/main/java/com/logistics/calculation/application/service\" \\\\\n  \"$BASE/microservices/calculation-service/src/main/java/com/logistics/calculation/infrastructure/messaging\" \\\\\n  \"$BASE/microservices/calculation-service/src/main/java/com/logistics/calculation/infrastructure/persistence/entity\" \\\\\n  \"$BASE/microservices/calculation-service/src/main/java/com/logistics/calculation/infrastructure/persistence/repository\" \\\\\n  \"$BASE/microservices/calculation-service/src/main/java/com/logistics/calculation/infrastructure/client\" \\\\\n  \"$BASE/microservices/calculation-service/src/main/java/com/logistics/calculation/web/controller\" \\\\\n  \"$BASE/microservices/calculation-service/src/main/java/com/logistics/calculation/web/dto\" \\\\\n  \"$BASE/microservices/calculation-service/src/main/resources/db/migration\" \\\\\n  \"$BASE/microservices/calculation-service/src/test/java/com/logistics/calculation/domain/algorithm\" \\\\\n  \\\\\n  \"$BASE/microservices/dashboard-service/src/main/java/com/logistics/dashboard/application/service\" \\\\\n  \"$BASE/microservices/dashboard-service/src/main/java/com/logistics/dashboard/infrastructure/client\" \\\\\n  \"$BASE/microservices/dashboard-service/src/main/java/com/logistics/dashboard/web/controller\" \\\\\n  \"$BASE/microservices/dashboard-service/src/main/java/com/logistics/dashboard/web/dto\" \\\\\n  \"$BASE/microservices/dashboard-service/src/main/resources\" \\\\\n  \\\\\n  \"$BASE/microservices/api-gateway/src/main/java/com/logistics/gateway\" \\\\\n  \"$BASE/microservices/api-gateway/src/main/resources\" \\\\\n  \\\\\n  \"$BASE/microservices/shared/src/main/java/com/logistics/shared/domain/vo\" \\\\\n  \"$BASE/microservices/shared/src/main/java/com/logistics/shared/domain/event\" \\\\\n  \"$BASE/microservices/shared/src/main/java/com/logistics/shared/web\" \\\\\n  \\\\\n  \"$BASE/docker/nginx\" \\\\\n  \"$BASE/docker/prometheus\" \\\\\n  \"$BASE/docker/grafana/dashboards\" \\\\\n  \"$BASE/docker/grafana/provisioning/datasources\" \\\\\n  \"$BASE/docker/grafana/provisioning/dashboards\"\n\necho \"Directory tree created.\")"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Write(./production.config.*)"
+    ]
+  },
+  "model": "claude-sonnet-4-20250514",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write(*.py)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -m black $file"
+          }
+        ]
+      }
+    ]
+  },
+  "outputStyle": "Concise",
+  "alwaysThinkingEnabled": false,
+  "autoMemoryEnabled": false,
+  "style": {
+    "python": {
+      "use_type_hints": true,
+      "docstrings": true
+    }
+  },
+  "tests": {
+    "require_for_new_modules": true
+  },
+  "maxTokens": 4096
+}
