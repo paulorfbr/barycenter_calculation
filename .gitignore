@@ -27,3 +27,29 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+### CI/CD and Secrets ###
+.env
+.env.local
+.env.*.local
+*.tfvars
+!*.tfvars.example
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+tfplan
+build.env
+
+### Docker ###
+docker/*.log
+
+### Node / Angular ###
+src/ui/angular-app/node_modules/
+src/ui/angular-app/dist/
+src/ui/angular-app/coverage/
+src/ui/angular-app/.angular/cache/
+
+### Maven / Spring Boot ###
+logistics-api/target/
+logistics-api/.m2/

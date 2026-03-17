@@ -1,0 +1,459 @@
+# =============================================================================
+# Docker Compose — Logistics Barycenter Microservices Platform
+#
+# Services:
+#   Infrastructure:
+#     postgres        — single Postgres instance, multiple databases (dev only)
+#     redis           — shared Redis for caching and rate limiting
+#     kafka           — Kafka broker for domain event streaming
+#     zookeeper       — Kafka dependency
+#     zipkin          — distributed tracing collector / UI
+#     prometheus      — metrics scraping
+#     grafana         — metrics dashboards
+#
+#   Application:
+#     api-gateway         — public entry point on port 8080
+#     company-service     — company management (port 8081)
+#     site-service        — consumption site management (port 8082)
+#     calculation-service — barycenter algorithms (port 8083)
+#     dashboard-service   — aggregated KPIs (port 8084)
+#
+# Usage:
+#   docker compose -f docker-compose.microservices.yml up --build
+#   docker compose -f docker-compose.microservices.yml up -d
+#   docker compose -f docker-compose.microservices.yml logs -f company-service
+#   docker compose -f docker-compose.microservices.yml down -v   # wipe volumes
+#
+# Environment overrides:
+#   Copy .env.example to .env and edit before first run.
+#
+# Startup order (dependency graph):
+#   zookeeper → kafka → postgres → redis → services → api-gateway
+# =============================================================================
+
+# ── Shared network ────────────────────────────────────────────────────────────
+networks:
+  logistics-net:
+    driver: bridge
+    name: logistics-microservices
+
+# ── Named volumes ─────────────────────────────────────────────────────────────
+volumes:
+  postgres-data:
+  redis-data:
+  kafka-data:
+  zookeeper-data:
+  zookeeper-log:
+  prometheus-data:
+  grafana-data:
+
+services:
+
+  # ===========================================================================
+  # INFRASTRUCTURE
+  # ===========================================================================
+
+  # ---------------------------------------------------------------------------
+  # ZooKeeper — required by Kafka (single-node dev setup)
+  # ---------------------------------------------------------------------------
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    container_name: logistics-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME:   2000
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+      - zookeeper-log:/var/lib/zookeeper/log
+    networks:
+      - logistics-net
+    healthcheck:
+      test: ["CMD-SHELL", "echo ruok | nc localhost 2181 | grep imok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # Kafka — single-broker development cluster
+  # Topics are auto-created on first publish; for production use a Kafka
+  # operator and pre-create topics with appropriate replication factors.
+  # ---------------------------------------------------------------------------
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: logistics-kafka
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    ports:
+      - "9092:9092"    # External: for local producer/consumer tools
+      - "9093:9093"    # Internal: service-to-service (Docker bridge)
+    environment:
+      KAFKA_BROKER_ID:                          1
+      KAFKA_ZOOKEEPER_CONNECT:                  zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP:     PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS:               PLAINTEXT://kafka:9093,PLAINTEXT_HOST://localhost:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME:         PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR:   1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR:      1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE:          "true"
+      KAFKA_NUM_PARTITIONS:                     3       # 3 partitions per topic for parallelism
+      KAFKA_LOG_RETENTION_HOURS:                168     # 7-day event retention
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    networks:
+      - logistics-net
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL — single instance, separate databases per service (dev shortcut)
+  # In production: dedicated RDS instances per service.
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: logistics-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev_password}
+      POSTGRES_USER:     ${POSTGRES_USER:-logistics}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/init-databases.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - logistics-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-logistics}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Redis — shared caching and API Gateway rate limiting
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7.2-alpine
+    container_name: logistics-redis
+    ports:
+      - "6379:6379"
+    command: >
+      redis-server
+        --maxmemory 256mb
+        --maxmemory-policy allkeys-lru
+        --save 60 1000
+        --requirepass ${REDIS_PASSWORD:-}
+    volumes:
+      - redis-data:/data
+    networks:
+      - logistics-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Zipkin — distributed trace collection and UI
+  # UI: http://localhost:9411
+  # ---------------------------------------------------------------------------
+  zipkin:
+    image: openzipkin/zipkin:3.2
+    container_name: logistics-zipkin
+    ports:
+      - "9411:9411"
+    environment:
+      STORAGE_TYPE: mem    # In-memory for dev; use Elasticsearch/Cassandra in prod
+    networks:
+      - logistics-net
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Prometheus — metrics scraping
+  # UI: http://localhost:9090
+  # ---------------------------------------------------------------------------
+  prometheus:
+    image: prom/prometheus:v2.52.0
+    container_name: logistics-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
+      - --web.enable-lifecycle          # Allow config reload via POST /-/reload
+    networks:
+      - logistics-net
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Grafana — metrics dashboards
+  # UI: http://localhost:3000 (admin / admin)
+  # ---------------------------------------------------------------------------
+  grafana:
+    image: grafana/grafana-oss:10.4.2
+    container_name: logistics-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP:     "false"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    networks:
+      - logistics-net
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  # ===========================================================================
+  # APPLICATION SERVICES
+  # ===========================================================================
+
+  # ---------------------------------------------------------------------------
+  # Company Service — port 8081
+  # ---------------------------------------------------------------------------
+  company-service:
+    build:
+      context: ../microservices/company-service
+      dockerfile: Dockerfile
+      target: runtime
+    image: logistics/company-service:dev
+    container_name: logistics-company-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+      - "8091:8091"  # Actuator
+    environment:
+      SPRING_PROFILES_ACTIVE:          dev
+      COMPANY_DB_URL:                  jdbc:postgresql://postgres:5432/company_db
+      COMPANY_DB_USER:                 company_svc
+      COMPANY_DB_PASSWORD:             ${COMPANY_DB_PASSWORD:-company_pass}
+      KAFKA_BOOTSTRAP_SERVERS:         kafka:9093
+      REDIS_HOST:                      redis
+      REDIS_PORT:                      6379
+      REDIS_PASSWORD:                  ${REDIS_PASSWORD:-}
+      ZIPKIN_ENDPOINT:                 http://zipkin:9411/api/v2/spans
+      TRACING_SAMPLE_RATE:             "1.0"
+      JAVA_OPTS: >-
+        -XX:+UseContainerSupport
+        -XX:MaxRAMPercentage=75.0
+        -XX:+ExitOnOutOfMemoryError
+        -Djava.security.egd=file:/dev/./urandom
+    networks:
+      - logistics-net
+    healthcheck:
+      test: ["CMD-SHELL",
+             "wget -qO- http://localhost:8091/actuator/health/readiness | grep -q '\"status\":\"UP\"'"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
+    restart: unless-stopped
+    labels:
+      com.logistics.service: "company-service"
+      com.logistics.version: "dev"
+
+  # ---------------------------------------------------------------------------
+  # Site Service — port 8082
+  # ---------------------------------------------------------------------------
+  site-service:
+    build:
+      context: ../microservices/site-service
+      dockerfile: Dockerfile
+      target: runtime
+    image: logistics/site-service:dev
+    container_name: logistics-site-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      company-service:
+        condition: service_healthy
+    ports:
+      - "8082:8082"
+      - "8092:8092"
+    environment:
+      SPRING_PROFILES_ACTIVE:    dev
+      SITE_DB_URL:               jdbc:postgresql://postgres:5432/site_db
+      SITE_DB_USER:              site_svc
+      SITE_DB_PASSWORD:          ${SITE_DB_PASSWORD:-site_pass}
+      KAFKA_BOOTSTRAP_SERVERS:   kafka:9093
+      REDIS_HOST:                redis
+      REDIS_PORT:                6379
+      REDIS_PASSWORD:            ${REDIS_PASSWORD:-}
+      ZIPKIN_ENDPOINT:           http://zipkin:9411/api/v2/spans
+      TRACING_SAMPLE_RATE:       "1.0"
+    networks:
+      - logistics-net
+    healthcheck:
+      test: ["CMD-SHELL",
+             "wget -qO- http://localhost:8092/actuator/health/readiness | grep -q '\"status\":\"UP\"'"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
+    restart: unless-stopped
+    labels:
+      com.logistics.service: "site-service"
+
+  # ---------------------------------------------------------------------------
+  # Calculation Service — port 8083
+  # ---------------------------------------------------------------------------
+  calculation-service:
+    build:
+      context: ../microservices/calculation-service
+      dockerfile: Dockerfile
+      target: runtime
+    image: logistics/calculation-service:dev
+    container_name: logistics-calculation-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      site-service:
+        condition: service_healthy
+    ports:
+      - "8083:8083"
+      - "8093:8093"
+    environment:
+      SPRING_PROFILES_ACTIVE:    dev
+      CALC_DB_URL:               jdbc:postgresql://postgres:5432/calculation_db
+      CALC_DB_USER:              calc_svc
+      CALC_DB_PASSWORD:          ${CALC_DB_PASSWORD:-calc_pass}
+      KAFKA_BOOTSTRAP_SERVERS:   kafka:9093
+      ZIPKIN_ENDPOINT:           http://zipkin:9411/api/v2/spans
+      TRACING_SAMPLE_RATE:       "1.0"
+      # Feign: resolve site-service by Docker service name
+      SPRING_CLOUD_LOADBALANCER_RIBBON_ENABLED: "false"
+    networks:
+      - logistics-net
+    healthcheck:
+      test: ["CMD-SHELL",
+             "wget -qO- http://localhost:8093/actuator/health/readiness | grep -q '\"status\":\"UP\"'"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
+    restart: unless-stopped
+    labels:
+      com.logistics.service: "calculation-service"
+
+  # ---------------------------------------------------------------------------
+  # Dashboard Service — port 8084
+  # ---------------------------------------------------------------------------
+  dashboard-service:
+    build:
+      context: ../microservices/dashboard-service
+      dockerfile: Dockerfile
+      target: runtime
+    image: logistics/dashboard-service:dev
+    container_name: logistics-dashboard-service
+    depends_on:
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      company-service:
+        condition: service_healthy
+      site-service:
+        condition: service_healthy
+    ports:
+      - "8084:8084"
+      - "8094:8094"
+    environment:
+      SPRING_PROFILES_ACTIVE:  dev
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9093
+      REDIS_HOST:              redis
+      REDIS_PORT:              6379
+      REDIS_PASSWORD:          ${REDIS_PASSWORD:-}
+      ZIPKIN_ENDPOINT:         http://zipkin:9411/api/v2/spans
+      TRACING_SAMPLE_RATE:     "1.0"
+    networks:
+      - logistics-net
+    healthcheck:
+      test: ["CMD-SHELL",
+             "wget -qO- http://localhost:8094/actuator/health/readiness | grep -q '\"status\":\"UP\"'"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    labels:
+      com.logistics.service: "dashboard-service"
+
+  # ---------------------------------------------------------------------------
+  # API Gateway — public entry point on port 8080
+  # ---------------------------------------------------------------------------
+  api-gateway:
+    build:
+      context: ../microservices/api-gateway
+      dockerfile: Dockerfile
+      target: runtime
+    image: logistics/api-gateway:dev
+    container_name: logistics-api-gateway
+    depends_on:
+      redis:
+        condition: service_healthy
+      company-service:
+        condition: service_healthy
+      site-service:
+        condition: service_healthy
+      calculation-service:
+        condition: service_healthy
+      dashboard-service:
+        condition: service_healthy
+    ports:
+      - "8080:8080"   # Public API
+      - "8090:8090"   # Actuator
+    environment:
+      SPRING_PROFILES_ACTIVE:      dev
+      REDIS_HOST:                  redis
+      REDIS_PORT:                  6379
+      REDIS_PASSWORD:              ${REDIS_PASSWORD:-}
+      COMPANY_SERVICE_URL:         http://company-service:8081
+      SITE_SERVICE_URL:            http://site-service:8082
+      CALC_SERVICE_URL:            http://calculation-service:8083
+      DASHBOARD_SERVICE_URL:       http://dashboard-service:8084
+      CORS_ALLOWED_ORIGIN:         ${CORS_ALLOWED_ORIGIN:-http://localhost:4200}
+      ZIPKIN_ENDPOINT:             http://zipkin:9411/api/v2/spans
+      TRACING_SAMPLE_RATE:         "1.0"
+      JAVA_OPTS: >-
+        -XX:+UseContainerSupport
+        -XX:MaxRAMPercentage=65.0
+        -XX:+ExitOnOutOfMemoryError
+        -Djava.security.egd=file:/dev/./urandom
+    networks:
+      - logistics-net
+    healthcheck:
+      test: ["CMD-SHELL",
+             "wget -qO- http://localhost:8090/actuator/health | grep -q '\"status\":\"UP\"'"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    labels:
+      com.logistics.service: "api-gateway"
+      com.logistics.public:  "true"

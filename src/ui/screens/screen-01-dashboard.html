@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SCR-001 — Dashboard</title>
+  <link rel="stylesheet" href="../design/design-tokens.css" />
+  <link rel="stylesheet" href="../design/prototype-shell.css" />
+  <style>
+    /* ── Dashboard layout ────────────────────────────────────────────────── */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    @media (max-width: 1279px) {
+      .dashboard-grid { grid-template-columns: 1fr; }
+    }
+
+    .dashboard-right { display: flex; flex-direction: column; gap: 20px; }
+
+    /* ── Barycenter summary card ─────────────────────────────────────────── */
+    .bary-stats {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding: 16px 0;
+    }
+
+    .bary-stat { display: flex; flex-direction: column; gap: 4px; }
+
+    .bary-stat-divider {
+      width: 1px; height: 40px;
+      background: var(--color-neutral-300);
+    }
+
+    /* ── Company site list ───────────────────────────────────────────────── */
+    .company-site-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--color-neutral-300);
+    }
+    .company-site-row:last-child { border-bottom: none; }
+
+    .company-site-info {
+      display: flex; align-items: center; gap: 12px; min-width: 160px;
+    }
+
+    .company-site-name { font-size: var(--font-size-body); font-weight: 500; color: var(--color-neutral-900); }
+
+    .weight-value { font-size: var(--font-size-small); color: var(--color-neutral-700); min-width: 54px; text-align: right; }
+
+    /* ── Activity feed ───────────────────────────────────────────────────── */
+    .activity-feed { padding: 8px 24px; }
+
+    .activity-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--color-neutral-300);
+    }
+    .activity-item:last-child { border-bottom: none; }
+
+    .activity-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--color-primary-400);
+      flex-shrink: 0; margin-top: 5px;
+    }
+
+    .activity-message { font-size: var(--font-size-small); color: var(--color-neutral-900); line-height: 1.4; }
+    .activity-time { font-size: 11px; color: var(--color-neutral-500); display: block; margin-top: 2px; }
+
+    /* ── Alert table ─────────────────────────────────────────────────────── */
+    .overdue-alert {
+      background: var(--color-danger-100);
+      border: 1px solid var(--color-danger-600);
+      border-left: 4px solid var(--color-danger-600);
+      border-radius: var(--radius-2);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: var(--font-size-small);
+      color: var(--color-danger-600);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- ══════════════ SIDEBAR ══════════════ -->
+  <nav class="sidebar" aria-label="Main navigation">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">
+        <span class="material-icons">my_location</span>
+      </div>
+      <div class="sidebar-logo-text">
+        <div class="sidebar-logo-name">Define Logistics</div>
+        <div class="sidebar-logo-sub">Barycenter Platform</div>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section">Main</div>
+      <a href="screen-01-dashboard.html" class="nav-item active" aria-current="page">
+        <span class="material-icons">dashboard</span>
+        <span class="nav-item-label">Dashboard</span>
+      </a>
+      <a href="screen-02-companies.html" class="nav-item">
+        <span class="material-icons">domain</span>
+        <span class="nav-item-label">Companies</span>
+      </a>
+      <a href="screen-03-sites.html" class="nav-item">
+        <span class="material-icons">location_on</span>
+        <span class="nav-item-label">Sites</span>
+      </a>
+      <div class="nav-section">Analytics</div>
+      <a href="screen-04-barycenter.html" class="nav-item">
+        <span class="material-icons">my_location</span>
+        <span class="nav-item-label">Barycenter</span>
+      </a>
+      <a href="screen-05-map.html" class="nav-item">
+        <span class="material-icons">map</span>
+        <span class="nav-item-label">Map View</span>
+      </a>
+    </div>
+    <div class="sidebar-footer">
+      <div class="sidebar-collapse-btn" aria-label="Collapse sidebar">
+        <span class="material-icons">chevron_left</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ══════════════ TOPBAR ══════════════ -->
+  <header class="topbar" role="banner">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="#">Home</a>
+      <span class="material-icons" aria-hidden="true">chevron_right</span>
+      <span aria-current="page">Dashboard</span>
+    </nav>
+    <div class="topbar-search" role="search">
+      <span class="material-icons" aria-hidden="true">search</span>
+      <input type="search" placeholder="Search companies, sites…" aria-label="Global search" />
+    </div>
+    <div class="topbar-end">
+      <button class="topbar-icon-btn" aria-label="Notifications">
+        <span class="material-icons">notifications_none</span>
+      </button>
+      <div class="user-avatar" role="button" aria-label="User menu" tabindex="0">JD</div>
+    </div>
+  </header>
+
+  <!-- ══════════════ CONTENT ══════════════ -->
+  <main class="content-area" id="main-content">
+    <div class="page-content page-enter">
+
+      <!-- Page header -->
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Dashboard</h1>
+          <p class="page-subtitle">Logistics barycenter overview — Tuesday, March 17, 2026</p>
+        </div>
+        <div class="page-actions">
+          <a href="screen-04-barycenter.html" class="btn btn-primary">
+            <span class="material-icons">my_location</span>
+            Calculate Barycenter
+          </a>
+        </div>
+      </div>
+
+      <!-- KPI cards -->
+      <div class="grid-4" role="list" aria-label="Key performance indicators">
+        <div role="listitem">
+          <div class="kpi-card">
+            <div class="kpi-icon" style="background:var(--color-primary-050);">
+              <span class="material-icons" style="color:var(--color-primary-700);">domain</span>
+            </div>
+            <div class="kpi-meta">
+              <div class="kpi-label">Total Companies</div>
+              <div class="kpi-value">14</div>
+              <div class="kpi-trend trend-up">
+                <span class="material-icons">trending_up</span>+2 this month
+              </div>
+            </div>
+          </div>
+        </div>
+        <div role="listitem">
+          <div class="kpi-card">
+            <div class="kpi-icon" style="background:var(--color-info-100);">
+              <span class="material-icons" style="color:var(--color-info-600);">local_shipping</span>
+            </div>
+            <div class="kpi-meta">
+              <div class="kpi-label">Active Shipments</div>
+              <div class="kpi-value">234</div>
+              <div class="kpi-trend trend-up">
+                <span class="material-icons">trending_up</span>23 active
+              </div>
+            </div>
+          </div>
+        </div>
+        <div role="listitem">
+          <div class="kpi-card">
+            <div class="kpi-icon" style="background:var(--color-warning-100);">
+              <span class="material-icons" style="color:var(--color-warning-600);">location_on</span>
+            </div>
+            <div class="kpi-meta">
+              <div class="kpi-label">Consumption Sites</div>
+              <div class="kpi-value">38</div>
+              <div class="kpi-trend trend-up">
+                <span class="material-icons">trending_up</span>+3 new
+              </div>
+            </div>
+          </div>
+        </div>
+        <div role="listitem">
+          <div class="kpi-card">
+            <div class="kpi-icon" style="background:var(--color-success-100);">
+              <span class="material-icons" style="color:var(--color-success-600);">verified</span>
+            </div>
+            <div class="kpi-meta">
+              <div class="kpi-label">On-Time Rate</div>
+              <div class="kpi-value">94.2%</div>
+              <div class="kpi-trend trend-up">
+                <span class="material-icons">trending_up</span>+1.3%
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main grid: Barycenter summary + right column -->
+      <div class="dashboard-grid">
+
+        <!-- Barycenter summary card -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Barycenter Analysis</h2>
+              <p class="card-subtitle">Weighted logistics center optimization</p>
+            </div>
+            <a href="screen-04-barycenter.html" class="btn btn-secondary btn-sm">
+              <span class="material-icons">open_in_new</span>
+              Open
+            </a>
+          </div>
+          <div class="card-body">
+            <!-- Stats row -->
+            <div class="bary-stats">
+              <div class="bary-stat">
+                <span class="stat-value">38</span>
+                <span class="stat-label">Input Sites</span>
+              </div>
+              <div class="bary-stat-divider" aria-hidden="true"></div>
+              <div class="bary-stat">
+                <span class="stat-value">247.3k t</span>
+                <span class="stat-label">Total Traffic</span>
+              </div>
+              <div class="bary-stat-divider" aria-hidden="true"></div>
+              <div class="bary-stat">
+                <span class="stat-value">6</span>
+                <span class="stat-label">Candidates</span>
+              </div>
+            </div>
+
+            <!-- Algorithm info -->
+            <div class="algorithm-info">
+              <strong>Weiszfeld Algorithm:</strong> minimises the weighted sum of geodesic (Haversine) distances to all consumption sites — the geometric median, optimal for logistics cost.
+              <strong>Simple Barycenter:</strong> closed-form weighted centroid, instant convergence.
+            </div>
+
+            <!-- Company site list -->
+            <div style="margin-top: 20px;">
+              <p class="section-title" style="margin-bottom: 12px;">Companies with Sites</p>
+
+              <div class="company-site-row">
+                <div class="company-site-info">
+                  <span class="company-site-name">Acme Corporation</span>
+                  <span class="badge badge-primary">4 sites</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px; flex:1; max-width:200px;">
+                  <div class="weight-bar-container" style="flex:1;">
+                    <div class="weight-bar-track">
+                      <div class="weight-bar-fill" style="width:82%;"></div>
+                    </div>
+                  </div>
+                  <span class="weight-value mono">12.5k t</span>
+                </div>
+              </div>
+              <div class="company-site-row">
+                <div class="company-site-info">
+                  <span class="company-site-name">Global Freight Inc</span>
+                  <span class="badge badge-primary">12 sites</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px; flex:1; max-width:200px;">
+                  <div class="weight-bar-container" style="flex:1;">
+                    <div class="weight-bar-track">
+                      <div class="weight-bar-fill" style="width:100%;"></div>
+                    </div>
+                  </div>
+                  <span class="weight-value mono">47.8k t</span>
+                </div>
+              </div>
+              <div class="company-site-row">
+                <div class="company-site-info">
+                  <span class="company-site-name">FastLog Inc</span>
+                  <span class="badge badge-primary">7 sites</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px; flex:1; max-width:200px;">
+                  <div class="weight-bar-container" style="flex:1;">
+                    <div class="weight-bar-track">
+                      <div class="weight-bar-fill" style="width:45%;"></div>
+                    </div>
+                  </div>
+                  <span class="weight-value mono">21.6k t</span>
+                </div>
+              </div>
+              <div class="company-site-row">
+                <div class="company-site-info">
+                  <span class="company-site-name">Metro Moves</span>
+                  <span class="badge badge-primary">3 sites</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px; flex:1; max-width:200px;">
+                  <div class="weight-bar-container" style="flex:1;">
+                    <div class="weight-bar-track">
+                      <div class="weight-bar-fill" style="width:28%;"></div>
+                    </div>
+                  </div>
+                  <span class="weight-value mono">8.2k t</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right column -->
+        <div class="dashboard-right">
+          <!-- Recent activity -->
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">Recent Activity</h2>
+            </div>
+            <div class="activity-feed" role="feed" aria-label="Recent activity">
+              <div class="activity-item" role="article">
+                <span class="activity-dot" aria-hidden="true"></span>
+                <div>
+                  <p class="activity-message">Barycenter calculated for Acme Corporation</p>
+                  <time class="activity-time">2 minutes ago</time>
+                </div>
+              </div>
+              <div class="activity-item" role="article">
+                <span class="activity-dot" aria-hidden="true"></span>
+                <div>
+                  <p class="activity-message">New site added: Paris Distribution Hub</p>
+                  <time class="activity-time">1 hour ago</time>
+                </div>
+              </div>
+              <div class="activity-item" role="article">
+                <span class="activity-dot" aria-hidden="true"></span>
+                <div>
+                  <p class="activity-message">Global Freight result approved</p>
+                  <time class="activity-time">3 hours ago</time>
+                </div>
+              </div>
+              <div class="activity-item" role="article">
+                <span class="activity-dot" aria-hidden="true"></span>
+                <div>
+                  <p class="activity-message">FastLog Inc company created</p>
+                  <time class="activity-time">Yesterday, 14:22</time>
+                </div>
+              </div>
+              <div class="activity-item" role="article">
+                <span class="activity-dot" aria-hidden="true"></span>
+                <div>
+                  <p class="activity-message">Site deactivated: Lyon Depot</p>
+                  <time class="activity-time">Yesterday, 09:15</time>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Latest results -->
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">Latest Results</h2>
+              <a href="screen-04-barycenter.html" class="btn btn-ghost btn-sm">View all</a>
+            </div>
+            <div style="overflow-x:auto;">
+              <table class="data-table" aria-label="Latest barycenter results">
+                <thead>
+                  <tr>
+                    <th scope="col">Company</th>
+                    <th scope="col">Coordinate</th>
+                    <th scope="col">Algorithm</th>
+                    <th scope="col">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Acme Corp</td>
+                    <td class="mono" style="font-size:11px;">48.86°N 2.35°E</td>
+                    <td><span class="badge badge-neutral" style="font-size:10px;">Weiszfeld</span></td>
+                    <td><span class="badge badge-info">CANDIDATE</span></td>
+                  </tr>
+                  <tr>
+                    <td>Global Freight</td>
+                    <td class="mono" style="font-size:11px;">51.51°N 0.13°W</td>
+                    <td><span class="badge badge-neutral" style="font-size:10px;">Simple</span></td>
+                    <td><span class="badge badge-success">APPROVED</span></td>
+                  </tr>
+                  <tr>
+                    <td>FastLog Inc</td>
+                    <td class="mono" style="font-size:11px;">50.85°N 4.35°E</td>
+                    <td><span class="badge badge-neutral" style="font-size:10px;">Weiszfeld</span></td>
+                    <td><span class="badge badge-success">CONFIRMED</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Overdue shipments alert -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Overdue Shipments</h2>
+            <p class="card-subtitle">Require immediate attention</p>
+          </div>
+          <span class="badge badge-danger">3 overdue</span>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="data-table" aria-label="Overdue shipments">
+            <thead>
+              <tr>
+                <th scope="col">Shipment ID</th>
+                <th scope="col">Company</th>
+                <th scope="col">Origin</th>
+                <th scope="col">Destination</th>
+                <th scope="col">Overdue</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="mono">#SHP-1799</td>
+                <td>Acme Corporation</td>
+                <td>LAX</td>
+                <td>JFK</td>
+                <td><span class="badge badge-danger">3 days</span></td>
+              </tr>
+              <tr>
+                <td class="mono">#SHP-1755</td>
+                <td>Global Freight</td>
+                <td>ORD</td>
+                <td>MIA</td>
+                <td><span class="badge badge-danger">2 days</span></td>
+              </tr>
+              <tr>
+                <td class="mono">#SHP-1701</td>
+                <td>FastLog Inc</td>
+                <td>SEA</td>
+                <td>BOS</td>
+                <td><span class="badge badge-danger">1 day</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Toast (example) -->
+  <div class="toast-container" aria-live="polite" aria-atomic="true">
+    <!-- Toasts render here at bottom-right -->
+  </div>
+
+</div>
+</body>
+</html>

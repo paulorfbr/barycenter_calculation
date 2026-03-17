@@ -1,0 +1,72 @@
+# =============================================================================
+# Prometheus scrape configuration
+#
+# Each microservice exposes Micrometer metrics at:
+#   /actuator/prometheus  (Actuator port)
+#
+# Scrape interval: 15 seconds (matches Grafana default panel resolution)
+# =============================================================================
+
+global:
+  scrape_interval:     15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'logistics-local'
+    env:     'development'
+
+scrape_configs:
+
+  # ---------------------------------------------------------------------------
+  # API Gateway
+  # ---------------------------------------------------------------------------
+  - job_name: 'api-gateway'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['api-gateway:8090']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label:  instance
+        replacement:   'api-gateway'
+
+  # ---------------------------------------------------------------------------
+  # Company Service
+  # ---------------------------------------------------------------------------
+  - job_name: 'company-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['company-service:8091']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label:  instance
+        replacement:   'company-service'
+
+  # ---------------------------------------------------------------------------
+  # Site Service
+  # ---------------------------------------------------------------------------
+  - job_name: 'site-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['site-service:8092']
+
+  # ---------------------------------------------------------------------------
+  # Calculation Service
+  # ---------------------------------------------------------------------------
+  - job_name: 'calculation-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['calculation-service:8093']
+
+  # ---------------------------------------------------------------------------
+  # Dashboard Service
+  # ---------------------------------------------------------------------------
+  - job_name: 'dashboard-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['dashboard-service:8094']
+
+  # ---------------------------------------------------------------------------
+  # Prometheus self-monitoring
+  # ---------------------------------------------------------------------------
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']

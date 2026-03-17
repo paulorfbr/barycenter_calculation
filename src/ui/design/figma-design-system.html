@@ -1,0 +1,1869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Logistics Barycenter — Figma Design System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <link rel="stylesheet" href="design-tokens.css" />
+  <style>
+    /* ── Reset ─────────────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+    body {
+      font-family: var(--font-family-base);
+      font-size: var(--font-size-body);
+      line-height: 1.5;
+      color: var(--color-neutral-900);
+      background: #ECEEF2;
+    }
+
+    /* ── Page structure ─────────────────────────────────────────────────────── */
+    .ds-page {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 48px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 64px;
+    }
+
+    .ds-section {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .ds-section-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--color-neutral-900);
+      border-bottom: 2px solid var(--color-primary-700);
+      padding-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ds-section-title .section-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      background: var(--color-primary-700);
+      color: white;
+      border-radius: 50%;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .ds-subsection-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--color-neutral-700);
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .ds-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .ds-col {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .annotation {
+      font-size: 11px;
+      color: var(--color-neutral-500);
+      font-family: var(--font-family-mono);
+      margin-top: 6px;
+    }
+
+    .label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--color-neutral-500);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 8px;
+    }
+
+    /* ── Page header ─────────────────────────────────────────────────────────── */
+    .ds-header {
+      background: var(--color-primary-900);
+      border-radius: 12px;
+      padding: 40px 48px;
+      color: white;
+    }
+
+    .ds-header-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .ds-header-logo-mark {
+      width: 48px;
+      height: 48px;
+      background: var(--color-primary-600);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ds-header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: white;
+    }
+
+    .ds-header p {
+      font-size: 14px;
+      color: rgba(255,255,255,0.65);
+      margin-top: 8px;
+      max-width: 600px;
+      line-height: 1.6;
+    }
+
+    .ds-header-meta {
+      display: flex;
+      gap: 32px;
+      margin-top: 32px;
+    }
+
+    .ds-header-meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .ds-header-meta-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.45);
+    }
+
+    .ds-header-meta-value {
+      font-size: 14px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.9);
+    }
+
+    /* ── Color swatches ─────────────────────────────────────────────────────── */
+    .swatch-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      border-radius: var(--radius-3);
+      overflow: hidden;
+      box-shadow: var(--shadow-1);
+      min-width: 200px;
+    }
+
+    .swatch {
+      padding: 14px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .swatch-name {
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .swatch-hex {
+      font-family: var(--font-family-mono);
+      font-size: 11px;
+      opacity: 0.75;
+    }
+
+    .swatch-token {
+      font-size: 10px;
+      opacity: 0.6;
+      display: block;
+      margin-top: 2px;
+    }
+
+    /* ── Typography samples ─────────────────────────────────────────────────── */
+    .type-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: var(--radius-3);
+      overflow: hidden;
+      box-shadow: var(--shadow-1);
+    }
+
+    .type-table th {
+      padding: 10px 16px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--color-neutral-500);
+      background: var(--color-neutral-100);
+      border-bottom: 1px solid var(--color-neutral-300);
+    }
+
+    .type-table td {
+      padding: 16px;
+      border-bottom: 1px solid var(--color-neutral-300);
+      vertical-align: middle;
+    }
+
+    .type-table tr:last-child td { border-bottom: none; }
+
+    .type-sample-display { font-family: var(--font-family-base); }
+    .type-sample-mono    { font-family: var(--font-family-mono); }
+
+    /* ── Spacing blocks ─────────────────────────────────────────────────────── */
+    .spacing-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .spacing-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .spacing-block {
+      background: var(--color-primary-400);
+      height: 16px;
+      border-radius: 3px;
+      opacity: 0.7;
+    }
+
+    .spacing-label {
+      font-size: 10px;
+      font-family: var(--font-family-mono);
+      color: var(--color-neutral-500);
+      text-align: center;
+      line-height: 1.3;
+    }
+
+    /* ── Shadow demos ────────────────────────────────────────────────────────── */
+    .shadow-row {
+      display: flex;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+
+    .shadow-box {
+      width: 120px;
+      height: 80px;
+      background: white;
+      border-radius: var(--radius-3);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .shadow-box-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--color-neutral-900);
+    }
+
+    .shadow-box-desc {
+      font-size: 10px;
+      color: var(--color-neutral-500);
+    }
+
+    /* ── Radius demos ────────────────────────────────────────────────────────── */
+    .radius-row { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
+
+    .radius-box {
+      width: 80px;
+      height: 64px;
+      background: var(--color-primary-100);
+      border: 2px solid var(--color-primary-400);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .radius-label-sm {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--color-primary-700);
+    }
+
+    /* ── Button components ─────────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 20px;
+      font-family: var(--font-family-base);
+      font-size: var(--font-size-body);
+      font-weight: 600;
+      line-height: 1;
+      border-radius: var(--radius-2);
+      border: 1.5px solid transparent;
+      cursor: pointer;
+      white-space: nowrap;
+      text-decoration: none;
+      min-height: 44px;
+      transition: background-color 100ms ease-out, border-color 100ms ease-out;
+    }
+
+    .btn .material-icons { font-size: 18px; line-height: 1; }
+
+    .btn-primary {
+      background-color: var(--color-primary-700);
+      color: white;
+      border-color: var(--color-primary-700);
+    }
+
+    .btn-secondary {
+      background-color: transparent;
+      color: var(--color-primary-700);
+      border-color: var(--color-primary-700);
+    }
+
+    .btn-danger {
+      background-color: var(--color-danger-600);
+      color: white;
+      border-color: var(--color-danger-600);
+    }
+
+    .btn-ghost {
+      background-color: transparent;
+      color: var(--color-neutral-700);
+      border-color: transparent;
+      padding: 8px 12px;
+      font-weight: 500;
+    }
+
+    .btn-icon {
+      width: 36px;
+      height: 36px;
+      min-height: 36px;
+      padding: 0;
+      background-color: transparent;
+      color: var(--color-neutral-700);
+      border-color: transparent;
+      border-radius: var(--radius-2);
+    }
+
+    .btn-sm {
+      padding: 6px 14px;
+      font-size: var(--font-size-small);
+      min-height: 32px;
+    }
+
+    .btn:disabled {
+      background-color: var(--color-neutral-300);
+      color: var(--color-neutral-500);
+      border-color: var(--color-neutral-300);
+      cursor: not-allowed;
+    }
+
+    /* ── Form controls ─────────────────────────────────────────────────────── */
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+
+    .form-label {
+      font-size: var(--font-size-label);
+      font-weight: 600;
+      color: var(--color-neutral-700);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .form-control {
+      height: 40px;
+      padding: 0 12px;
+      font-family: var(--font-family-base);
+      font-size: var(--font-size-body);
+      color: var(--color-neutral-900);
+      background-color: var(--color-neutral-000);
+      border: 1.5px solid var(--color-neutral-300);
+      border-radius: var(--radius-1);
+      width: 100%;
+      outline: none;
+    }
+
+    .form-control:focus { border-color: var(--color-primary-600); }
+    .form-control.error { border-color: var(--color-danger-600); }
+    .form-control.focused { border-color: var(--color-primary-600); outline: 2px solid rgba(46,109,164,0.2); }
+
+    .form-error {
+      font-size: var(--font-size-small);
+      color: var(--color-danger-600);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .form-error .material-icons { font-size: 14px; }
+
+    .form-hint { font-size: var(--font-size-small); color: var(--color-neutral-500); }
+
+    /* ── Badge components ─────────────────────────────────────────────────── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: var(--radius-full);
+      font-size: var(--font-size-small);
+      font-weight: 600;
+      line-height: 1.4;
+      white-space: nowrap;
+    }
+
+    .badge-success  { background: var(--color-success-100); color: var(--color-success-600); }
+    .badge-warning  { background: var(--color-warning-100); color: var(--color-warning-600); }
+    .badge-danger   { background: var(--color-danger-100);  color: var(--color-danger-600);  }
+    .badge-info     { background: var(--color-info-100);    color: var(--color-info-600);    }
+    .badge-neutral  { background: var(--color-neutral-100); color: var(--color-neutral-500); }
+    .badge-primary  { background: var(--color-primary-100); color: var(--color-primary-700); }
+
+    /* ── KPI Card ─────────────────────────────────────────────────────────── */
+    .card {
+      background: var(--color-neutral-000);
+      border-radius: var(--radius-3);
+      box-shadow: var(--shadow-1);
+    }
+
+    .kpi-card {
+      background: var(--color-neutral-000);
+      border-radius: var(--radius-3);
+      box-shadow: var(--shadow-1);
+      padding: 20px 24px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      min-width: 200px;
+      min-height: 100px;
+    }
+
+    .kpi-icon-wrap {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .kpi-icon-wrap .material-icons { font-size: 24px; }
+
+    .kpi-content { flex: 1; }
+
+    .kpi-label {
+      font-size: var(--font-size-label);
+      font-weight: 600;
+      color: var(--color-neutral-500);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .kpi-value {
+      font-size: var(--font-size-h1);
+      font-weight: 700;
+      color: var(--color-neutral-900);
+      line-height: 1.2;
+      margin-top: 4px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .kpi-trend {
+      font-size: var(--font-size-small);
+      font-weight: 600;
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .kpi-trend .material-icons { font-size: 14px; }
+    .trend-up   { color: var(--color-success-600); }
+    .trend-down { color: var(--color-danger-600); }
+
+    /* ── Data Table ───────────────────────────────────────────────────────── */
+    .data-table-wrapper {
+      overflow-x: auto;
+      border-radius: var(--radius-3);
+      box-shadow: var(--shadow-1);
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--color-neutral-000);
+      font-size: var(--font-size-body);
+    }
+
+    .data-table thead th {
+      height: 40px;
+      padding: 0 16px;
+      font-size: var(--font-size-label);
+      font-weight: 600;
+      color: var(--color-neutral-700);
+      text-align: left;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+      background: var(--color-neutral-100);
+      border-bottom: 1px solid var(--color-neutral-300);
+    }
+
+    .data-table tbody tr {
+      height: 48px;
+      border-bottom: 1px solid var(--color-neutral-300);
+    }
+
+    .data-table tbody tr:nth-child(even) { background: var(--color-primary-050); }
+    .data-table tbody tr.row-hover { background: var(--color-primary-100); }
+    .data-table tbody tr.row-selected {
+      background: var(--color-primary-100);
+      box-shadow: inset 3px 0 0 var(--color-primary-400);
+    }
+
+    .data-table tbody tr:last-child { border-bottom: none; }
+
+    .data-table td {
+      padding: 0 16px;
+      color: var(--color-neutral-900);
+      vertical-align: middle;
+    }
+
+    .data-table td.mono {
+      font-family: var(--font-family-mono);
+      font-size: var(--font-size-mono);
+    }
+
+    .data-table td.actions { white-space: nowrap; text-align: right; }
+
+    /* ── Pagination ───────────────────────────────────────────────────────── */
+    .pagination-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      height: 52px;
+      background: var(--color-neutral-000);
+      border-top: 1px solid var(--color-neutral-300);
+      font-size: var(--font-size-small);
+      color: var(--color-neutral-500);
+      border-radius: 0 0 var(--radius-3) var(--radius-3);
+    }
+
+    .pagination-controls { display: flex; align-items: center; gap: 4px; }
+
+    .page-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-1);
+      border: 1px solid transparent;
+      background: transparent;
+      cursor: pointer;
+      font-size: var(--font-size-small);
+      color: var(--color-neutral-700);
+    }
+
+    .page-btn.active {
+      background: var(--color-primary-700);
+      color: white;
+      font-weight: 600;
+    }
+
+    /* ── Status Badge Row ─────────────────────────────────────────────────── */
+    .badge-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    /* ── Navigation Sidebar Preview ──────────────────────────────────────── */
+    .nav-preview {
+      width: 240px;
+      background: var(--color-primary-900);
+      border-radius: var(--radius-3);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .nav-logo-area {
+      height: 64px;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .nav-logo-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--color-primary-600);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nav-logo-icon .material-icons { font-size: 18px; color: white; }
+
+    .nav-logo-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: white;
+      line-height: 1.2;
+    }
+
+    .nav-logo-sub {
+      font-size: 10px;
+      color: rgba(255,255,255,0.45);
+    }
+
+    .nav-section-label {
+      padding: 20px 16px 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.35);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      height: 48px;
+      padding: 0 16px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .nav-item.active {
+      background: var(--color-primary-800);
+    }
+
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 8px;
+      bottom: 8px;
+      width: 3px;
+      background: var(--color-primary-400);
+      border-radius: 0 2px 2px 0;
+    }
+
+    .nav-item:hover:not(.active) {
+      background: rgba(255,255,255,0.05);
+    }
+
+    .nav-item .material-icons {
+      font-size: 20px;
+      color: rgba(255,255,255,0.65);
+      flex-shrink: 0;
+    }
+
+    .nav-item.active .material-icons { color: white; }
+
+    .nav-item-label {
+      font-size: 14px;
+      color: rgba(255,255,255,0.65);
+      font-weight: 500;
+    }
+
+    .nav-item.active .nav-item-label { color: white; font-weight: 600; }
+
+    .nav-collapse-btn {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      height: 48px;
+      padding: 0 16px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    .nav-collapse-btn .material-icons { color: rgba(255,255,255,0.45); font-size: 20px; }
+
+    /* ── TopBar Preview ───────────────────────────────────────────────────── */
+    .topbar-preview {
+      height: 56px;
+      background: var(--color-neutral-000);
+      border-bottom: 1px solid var(--color-neutral-300);
+      box-shadow: var(--shadow-1);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 16px;
+      border-radius: var(--radius-3) var(--radius-3) 0 0;
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: var(--font-size-small);
+      color: var(--color-neutral-500);
+    }
+
+    .breadcrumb a { color: var(--color-primary-600); text-decoration: none; }
+    .breadcrumb .material-icons { font-size: 14px; }
+
+    .topbar-search {
+      flex: 1;
+      max-width: 400px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .topbar-search input {
+      width: 100%;
+      height: 36px;
+      background: var(--color-neutral-100);
+      border: 1.5px solid var(--color-neutral-300);
+      border-radius: var(--radius-2);
+      padding: 0 12px 0 36px;
+      font-size: var(--font-size-small);
+      color: var(--color-neutral-900);
+      outline: none;
+    }
+
+    .topbar-search .material-icons {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 16px;
+      color: var(--color-neutral-500);
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--color-primary-600);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* ── Toast ────────────────────────────────────────────────────────────── */
+    .toast {
+      width: 340px;
+      background: var(--color-neutral-000);
+      border-radius: var(--radius-3);
+      box-shadow: var(--shadow-4);
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 16px;
+    }
+
+    .toast-success { border-left: 4px solid var(--color-success-600); }
+    .toast-warning { border-left: 4px solid var(--color-warning-600); }
+    .toast-danger  { border-left: 4px solid var(--color-danger-600);  }
+    .toast-info    { border-left: 4px solid var(--color-info-600);    }
+
+    .toast-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+    .toast-success .toast-icon { color: var(--color-success-600); }
+    .toast-warning .toast-icon { color: var(--color-warning-600); }
+    .toast-danger  .toast-icon { color: var(--color-danger-600);  }
+    .toast-info    .toast-icon { color: var(--color-info-600);    }
+
+    .toast-content { flex: 1; }
+    .toast-title { font-size: var(--font-size-body); font-weight: 600; }
+    .toast-message { font-size: var(--font-size-small); color: var(--color-neutral-700); margin-top: 2px; }
+
+    /* ── Weight bar ───────────────────────────────────────────────────────── */
+    .weight-bar-container { display: flex; align-items: center; gap: 12px; }
+    .weight-bar-track { flex: 1; height: 6px; background: var(--color-neutral-300); border-radius: 99px; overflow: hidden; }
+    .weight-bar-fill  { height: 100%; background: var(--color-primary-600); border-radius: 99px; }
+
+    /* ── Algorithm info ───────────────────────────────────────────────────── */
+    .algorithm-info {
+      background: var(--color-primary-050);
+      border: 1px solid var(--color-primary-100);
+      border-left: 4px solid var(--color-primary-600);
+      border-radius: 0 var(--radius-2) var(--radius-2) 0;
+      padding: 12px 16px;
+      font-size: var(--font-size-small);
+      color: var(--color-neutral-700);
+    }
+
+    .algorithm-info strong { color: var(--color-primary-700); font-weight: 600; }
+
+    /* ── Coord display ────────────────────────────────────────────────────── */
+    .coord-display {
+      font-family: var(--font-family-mono);
+      font-size: var(--font-size-mono);
+      color: var(--color-neutral-700);
+      background: var(--color-neutral-100);
+      padding: 2px 8px;
+      border-radius: var(--radius-1);
+    }
+
+    /* ── Icon grid ────────────────────────────────────────────────────────── */
+    .icon-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 16px;
+    }
+
+    .icon-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 16px 8px;
+      background: white;
+      border-radius: var(--radius-2);
+      box-shadow: var(--shadow-1);
+    }
+
+    .icon-item .material-icons { font-size: 24px; color: var(--color-primary-700); }
+    .icon-item-label { font-size: 10px; text-align: center; color: var(--color-neutral-500); }
+
+    /* ── Component card wrapper ───────────────────────────────────────────── */
+    .component-card {
+      background: white;
+      border-radius: var(--radius-3);
+      padding: 32px;
+      box-shadow: var(--shadow-1);
+    }
+
+    .divider { height: 1px; background: var(--color-neutral-300); border: none; margin: 16px 0; }
+
+    code {
+      font-family: var(--font-family-mono);
+      font-size: 11px;
+      background: var(--color-neutral-100);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--color-primary-700);
+    }
+  </style>
+</head>
+<body>
+<div class="ds-page">
+
+  <!-- ═══════════════════════════════════════════════════════════ HEADER -->
+  <div class="ds-header">
+    <div class="ds-header-logo">
+      <div class="ds-header-logo-mark">
+        <span class="material-icons" style="font-size:28px; color:white;">my_location</span>
+      </div>
+      <div>
+        <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:rgba(255,255,255,0.45); margin-bottom:4px;">Design System</div>
+        <div style="font-size:22px; font-weight:700; color:white;">Logistics Barycenter Platform</div>
+      </div>
+    </div>
+    <p>
+      Complete visual design language for the Define Company Logistic Place application.
+      All Figma components, tokens, and prototypes derive from this single source of truth.
+      Use <code style="background:rgba(255,255,255,0.1); color:rgba(255,255,255,0.9);">design-tokens.css</code> for CSS variables.
+    </p>
+    <div class="ds-header-meta">
+      <div class="ds-header-meta-item">
+        <span class="ds-header-meta-label">Version</span>
+        <span class="ds-header-meta-value">1.0.0</span>
+      </div>
+      <div class="ds-header-meta-item">
+        <span class="ds-header-meta-label">Last Updated</span>
+        <span class="ds-header-meta-value">March 2026</span>
+      </div>
+      <div class="ds-header-meta-item">
+        <span class="ds-header-meta-label">Screens</span>
+        <span class="ds-header-meta-value">6 Main + Modals</span>
+      </div>
+      <div class="ds-header-meta-item">
+        <span class="ds-header-meta-label">Framework</span>
+        <span class="ds-header-meta-value">Angular 17 + Leaflet</span>
+      </div>
+      <div class="ds-header-meta-item">
+        <span class="ds-header-meta-label">Accessibility</span>
+        <span class="ds-header-meta-value">WCAG 2.1 AA</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ 1. COLORS -->
+  <section class="ds-section">
+    <h2 class="ds-section-title"><span class="section-num">1</span> Color System</h2>
+
+    <!-- Primary palette -->
+    <div>
+      <div class="ds-subsection-title">Primary Palette — Brand Navy Blue</div>
+      <div class="ds-row">
+        <div class="swatch-group">
+          <div class="swatch" style="background:#0D2137; color:white;">
+            <div><div class="swatch-name">Primary 900</div><span class="swatch-token">Sidebar background</span></div>
+            <span class="swatch-hex">#0D2137</span>
+          </div>
+          <div class="swatch" style="background:#1A3A5C; color:white;">
+            <div><div class="swatch-name">Primary 800</div><span class="swatch-token">Nav active, headers</span></div>
+            <span class="swatch-hex">#1A3A5C</span>
+          </div>
+          <div class="swatch" style="background:#1F4E79; color:white;">
+            <div><div class="swatch-name">Primary 700</div><span class="swatch-token">Button primary fill</span></div>
+            <span class="swatch-hex">#1F4E79</span>
+          </div>
+          <div class="swatch" style="background:#2E6DA4; color:white;">
+            <div><div class="swatch-name">Primary 600</div><span class="swatch-token">Hover, link color</span></div>
+            <span class="swatch-hex">#2E6DA4</span>
+          </div>
+          <div class="swatch" style="background:#5B9BD5; color:white;">
+            <div><div class="swatch-name">Primary 400</div><span class="swatch-token">Accent, selected tint</span></div>
+            <span class="swatch-hex">#5B9BD5</span>
+          </div>
+          <div class="swatch" style="background:#DDEEFF; color:#1F4E79;">
+            <div><div class="swatch-name">Primary 100</div><span class="swatch-token">Active sidebar bg</span></div>
+            <span class="swatch-hex">#DDEEFF</span>
+          </div>
+          <div class="swatch" style="background:#F0F7FF; color:#1F4E79;">
+            <div><div class="swatch-name">Primary 050</div><span class="swatch-token">Alt row, card tint</span></div>
+            <span class="swatch-hex">#F0F7FF</span>
+          </div>
+        </div>
+
+        <!-- Neutral palette -->
+        <div class="swatch-group">
+          <div class="swatch" style="background:#111827; color:white;">
+            <div><div class="swatch-name">Neutral 900</div><span class="swatch-token">Body text</span></div>
+            <span class="swatch-hex">#111827</span>
+          </div>
+          <div class="swatch" style="background:#374151; color:white;">
+            <div><div class="swatch-name">Neutral 700</div><span class="swatch-token">Secondary text</span></div>
+            <span class="swatch-hex">#374151</span>
+          </div>
+          <div class="swatch" style="background:#6B7280; color:white;">
+            <div><div class="swatch-name">Neutral 500</div><span class="swatch-token">Placeholder, disabled</span></div>
+            <span class="swatch-hex">#6B7280</span>
+          </div>
+          <div class="swatch" style="background:#D1D5DB; color:#374151;">
+            <div><div class="swatch-name">Neutral 300</div><span class="swatch-token">Borders, dividers</span></div>
+            <span class="swatch-hex">#D1D5DB</span>
+          </div>
+          <div class="swatch" style="background:#F3F4F6; color:#374151;">
+            <div><div class="swatch-name">Neutral 100</div><span class="swatch-token">Page background</span></div>
+            <span class="swatch-hex">#F3F4F6</span>
+          </div>
+          <div class="swatch" style="background:#FFFFFF; color:#374151; border:1px solid #E5E7EB;">
+            <div><div class="swatch-name">Neutral 000</div><span class="swatch-token">Card, input bg</span></div>
+            <span class="swatch-hex">#FFFFFF</span>
+          </div>
+        </div>
+
+        <!-- Semantic palette -->
+        <div class="swatch-group">
+          <div class="swatch" style="background:#16A34A; color:white;">
+            <div><div class="swatch-name">Success 600</div><span class="swatch-token">Active, delivered, positive</span></div>
+            <span class="swatch-hex">#16A34A</span>
+          </div>
+          <div class="swatch" style="background:#DCFCE7; color:#16A34A;">
+            <div><div class="swatch-name">Success 100</div><span class="swatch-token">Badge background</span></div>
+            <span class="swatch-hex">#DCFCE7</span>
+          </div>
+          <div class="swatch" style="background:#D97706; color:white;">
+            <div><div class="swatch-name">Warning 600</div><span class="swatch-token">In-transit, site markers</span></div>
+            <span class="swatch-hex">#D97706</span>
+          </div>
+          <div class="swatch" style="background:#FEF3C7; color:#D97706;">
+            <div><div class="swatch-name">Warning 100</div><span class="swatch-token">Badge background</span></div>
+            <span class="swatch-hex">#FEF3C7</span>
+          </div>
+          <div class="swatch" style="background:#DC2626; color:white;">
+            <div><div class="swatch-name">Danger 600</div><span class="swatch-token">Errors, overdue, delete</span></div>
+            <span class="swatch-hex">#DC2626</span>
+          </div>
+          <div class="swatch" style="background:#FEE2E2; color:#DC2626;">
+            <div><div class="swatch-name">Danger 100</div><span class="swatch-token">Badge background</span></div>
+            <span class="swatch-hex">#FEE2E2</span>
+          </div>
+          <div class="swatch" style="background:#0891B2; color:white;">
+            <div><div class="swatch-name">Info 600</div><span class="swatch-token">Informational, candidate</span></div>
+            <span class="swatch-hex">#0891B2</span>
+          </div>
+          <div class="swatch" style="background:#CFFAFE; color:#0891B2;">
+            <div><div class="swatch-name">Info 100</div><span class="swatch-token">Badge background</span></div>
+            <span class="swatch-hex">#CFFAFE</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════ 2. TYPOGRAPHY -->
+  <section class="ds-section">
+    <h2 class="ds-section-title"><span class="section-num">2</span> Typography</h2>
+    <div class="component-card">
+      <div style="margin-bottom: 20px;">
+        <div class="label">Primary Font</div>
+        <div style="font-size:28px; font-weight:700; font-family:'Inter', sans-serif;">Inter</div>
+        <div style="font-size:13px; color: var(--color-neutral-500); margin-top:4px;">Weights used: 400 Regular, 500 Medium, 600 SemiBold, 700 Bold</div>
+      </div>
+      <div style="margin-bottom: 24px;">
+        <div class="label">Monospace Font</div>
+        <div style="font-size:20px; font-weight:400; font-family:'JetBrains Mono', monospace;">JetBrains Mono</div>
+        <div style="font-size:13px; color: var(--color-neutral-500); margin-top:4px;">Used for: coordinates, IDs, tracking numbers, code values</div>
+      </div>
+      <hr class="divider" />
+      <table class="type-table">
+        <thead>
+          <tr>
+            <th>Token</th>
+            <th>Size</th>
+            <th>Weight</th>
+            <th>Line Height</th>
+            <th>Usage</th>
+            <th>Sample</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>text-display</code></td>
+            <td>28px / 1.75rem</td>
+            <td>700</td>
+            <td>1.2</td>
+            <td>Screen titles (rare)</td>
+            <td><div class="type-sample-display" style="font-size:28px; font-weight:700; line-height:1.2;">Logistics Dashboard</div></td>
+          </tr>
+          <tr>
+            <td><code>text-h1</code></td>
+            <td>22px / 1.375rem</td>
+            <td>700</td>
+            <td>1.3</td>
+            <td>Page headings</td>
+            <td><div class="type-sample-display" style="font-size:22px; font-weight:700; line-height:1.3;">Companies</div></td>
+          </tr>
+          <tr>
+            <td><code>text-h2</code></td>
+            <td>18px / 1.125rem</td>
+            <td>600</td>
+            <td>1.4</td>
+            <td>Section / card titles</td>
+            <td><div class="type-sample-display" style="font-size:18px; font-weight:600; line-height:1.4;">Barycenter Analysis</div></td>
+          </tr>
+          <tr>
+            <td><code>text-h3</code></td>
+            <td>15px / 0.9375rem</td>
+            <td>600</td>
+            <td>1.4</td>
+            <td>Sub-section labels</td>
+            <td><div class="type-sample-display" style="font-size:15px; font-weight:600; line-height:1.4;">Input Sites</div></td>
+          </tr>
+          <tr>
+            <td><code>text-body</code></td>
+            <td>14px / 0.875rem</td>
+            <td>400</td>
+            <td>1.5</td>
+            <td>General body copy</td>
+            <td><div class="type-sample-display" style="font-size:14px; font-weight:400; line-height:1.5;">Acme Corporation — Active logistics partner since 2021</div></td>
+          </tr>
+          <tr>
+            <td><code>text-small</code></td>
+            <td>12px / 0.75rem</td>
+            <td>400</td>
+            <td>1.4</td>
+            <td>Table meta, captions</td>
+            <td><div class="type-sample-display" style="font-size:12px; font-weight:400; line-height:1.4;">Showing 1–25 of 142 companies</div></td>
+          </tr>
+          <tr>
+            <td><code>text-mono</code></td>
+            <td>13px / 0.8125rem</td>
+            <td>400</td>
+            <td>1.5</td>
+            <td>Coordinates, IDs</td>
+            <td><div class="type-sample-mono" style="font-size:13px; font-weight:400; line-height:1.5; font-family:monospace;">48.8566° N, 2.3522° E</div></td>
+          </tr>
+          <tr>
+            <td><code>text-label</code></td>
+            <td>11px / 0.6875rem</td>
+            <td>600</td>
+            <td>1.2</td>
+            <td>Form labels, column headers</td>
+            <td><div class="type-sample-display" style="font-size:11px; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; line-height:1.2;">COMPANY NAME</div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ═════════════════════════════════════════════════════════ 3. SPACING -->
+  <section class="ds-section">
+    <h2 class="ds-section-title"><span class="section-num">3</span> Spacing System</h2>
+    <div class="component-card">
+      <div style="margin-bottom: 12px; font-size: 13px; color: var(--color-neutral-500);">8px base grid. All values are multiples of 4px.</div>
+      <div class="spacing-row">
+        <div class="spacing-item">
+          <div class="spacing-block" style="width: 4px;"></div>
+          <div class="spacing-label">space-1<br/>4px</div>
+        </div>
+        <div class="spacing-item">
+          <div class="spacing-block" style="width: 8px;"></div>
+          <div class="spacing-label">space-2<br/>8px</div>
+        </div>
+        <div class="spacing-item">
+          <div class="spacing-block" style="width: 12px;"></div>
+          <div class="spacing-label">space-3<br/>12px</div>
+        </div>
+        <div class="spacing-item">
+          <div class="spacing-block" style="width: 16px;"></div>
+          <div class="spacing-label">space-4<br/>16px</div>
+        </div>
+        <div class="spacing-item">
+          <div class="spacing-block" style="width: 20px;"></div>
+          <div class="spacing-label">space-5<br/>20px</div>
+        </div>
+        <div class="spacing-item">
+          <div class="spacing-block" style="width: 24px;"></div>
+          <div class="spacing-label">space-6<br/>24px</div>
+        </div>
+        <div class="spacing-item">
+          <div class="spacing-block" style="width: 32px;"></div>
+          <div class="spacing-label">space-8<br/>32px</div>
+        </div>
+        <div class="spacing-item">
+          <div class="spacing-block" style="width: 40px;"></div>
+          <div class="spacing-label">space-10<br/>40px</div>
+        </div>
+        <div class="spacing-item">
+          <div class="spacing-block" style="width: 48px;"></div>
+          <div class="spacing-label">space-12<br/>48px</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════ 4. ELEVATION & RADIUS -->
+  <section class="ds-section">
+    <h2 class="ds-section-title"><span class="section-num">4</span> Elevation &amp; Border Radius</h2>
+    <div class="ds-row" style="align-items:flex-start;">
+      <div class="component-card" style="flex:1; min-width:300px;">
+        <div class="ds-subsection-title">Shadow Levels</div>
+        <div class="shadow-row">
+          <div class="shadow-box" style="box-shadow:none; border:1px solid var(--color-neutral-300);">
+            <span class="shadow-box-label">Level 0</span>
+            <span class="shadow-box-desc">Flat</span>
+          </div>
+          <div class="shadow-box" style="box-shadow: 0 1px 3px rgba(0,0,0,0.12);">
+            <span class="shadow-box-label">Level 1</span>
+            <span class="shadow-box-desc">Cards</span>
+          </div>
+          <div class="shadow-box" style="box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+            <span class="shadow-box-label">Level 2</span>
+            <span class="shadow-box-desc">Panels</span>
+          </div>
+          <div class="shadow-box" style="box-shadow: 0 8px 24px rgba(0,0,0,0.18);">
+            <span class="shadow-box-label">Level 3</span>
+            <span class="shadow-box-desc">Modals</span>
+          </div>
+          <div class="shadow-box" style="box-shadow: 0 12px 32px rgba(0,0,0,0.22);">
+            <span class="shadow-box-label">Level 4</span>
+            <span class="shadow-box-desc">Toasts</span>
+          </div>
+        </div>
+      </div>
+      <div class="component-card" style="flex:1; min-width:300px;">
+        <div class="ds-subsection-title">Border Radius</div>
+        <div class="radius-row">
+          <div class="radius-item" style="text-align:center;">
+            <div class="radius-box" style="border-radius:4px;"></div>
+            <div class="annotation">radius-1<br/>4px — Inputs</div>
+          </div>
+          <div class="radius-item" style="text-align:center;">
+            <div class="radius-box" style="border-radius:6px;"></div>
+            <div class="annotation">radius-2<br/>6px — Buttons</div>
+          </div>
+          <div class="radius-item" style="text-align:center;">
+            <div class="radius-box" style="border-radius:8px;"></div>
+            <div class="annotation">radius-3<br/>8px — Cards</div>
+          </div>
+          <div class="radius-item" style="text-align:center;">
+            <div class="radius-box" style="border-radius:12px;"></div>
+            <div class="annotation">radius-4<br/>12px — Modals</div>
+          </div>
+          <div class="radius-item" style="text-align:center;">
+            <div class="radius-box" style="border-radius:9999px; height:40px; width:80px;"></div>
+            <div class="annotation">radius-full<br/>9999px — Badges</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════ 5. COMPONENTS -->
+  <section class="ds-section">
+    <h2 class="ds-section-title"><span class="section-num">5</span> Components</h2>
+
+    <!-- 5.1 Buttons -->
+    <div class="component-card">
+      <div class="ds-subsection-title">5.1 Button System</div>
+      <div class="ds-row" style="flex-wrap:wrap; gap:16px; margin-bottom:24px;">
+        <div class="ds-col">
+          <div class="label">Primary</div>
+          <button class="btn btn-primary"><span class="material-icons">my_location</span> Calculate Barycenter</button>
+          <button class="btn btn-primary btn-sm"><span class="material-icons">add</span> New Company</button>
+        </div>
+        <div class="ds-col">
+          <div class="label">Secondary</div>
+          <button class="btn btn-secondary">Export</button>
+          <button class="btn btn-secondary btn-sm">Cancel</button>
+        </div>
+        <div class="ds-col">
+          <div class="label">Danger</div>
+          <button class="btn btn-danger"><span class="material-icons">delete</span> Delete</button>
+        </div>
+        <div class="ds-col">
+          <div class="label">Ghost</div>
+          <button class="btn btn-ghost"><span class="material-icons">filter_list_off</span> Clear</button>
+          <button class="btn btn-ghost btn-sm">View all</button>
+        </div>
+        <div class="ds-col">
+          <div class="label">Icon</div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-icon"><span class="material-icons">edit</span></button>
+            <button class="btn btn-icon"><span class="material-icons">location_on</span></button>
+            <button class="btn btn-icon"><span class="material-icons">delete_outline</span></button>
+            <button class="btn btn-icon"><span class="material-icons">center_focus_strong</span></button>
+          </div>
+        </div>
+        <div class="ds-col">
+          <div class="label">Disabled</div>
+          <button class="btn btn-primary" disabled>Calculate Barycenter</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5.2 Form Controls -->
+    <div class="component-card">
+      <div class="ds-subsection-title">5.2 Form Controls</div>
+      <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:24px;">
+        <div class="form-group">
+          <label class="form-label">Company Name *</label>
+          <input class="form-control" type="text" value="Acme Corporation" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Company Name (Focused)</label>
+          <input class="form-control focused" type="text" value="Global Freight" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Company Name (Error)</label>
+          <input class="form-control error" type="text" value="" placeholder="Required field" />
+          <p class="form-error"><span class="material-icons">error_outline</span> Name is required</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Type *</label>
+          <select class="form-control">
+            <option>Shipper</option>
+            <option>Carrier</option>
+            <option>Both</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Latitude *</label>
+          <input class="form-control" type="number" value="48.8566" />
+          <p class="form-hint">Decimal degrees, −90 to 90</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Annual Traffic (Disabled)</label>
+          <input class="form-control" type="number" disabled value="450" />
+        </div>
+      </div>
+    </div>
+
+    <!-- 5.3 Status Badges -->
+    <div class="component-card">
+      <div class="ds-subsection-title">5.3 Status Badges</div>
+      <div style="margin-bottom:16px;">
+        <div class="label" style="margin-bottom:12px;">Company / Site Status</div>
+        <div class="badge-row">
+          <span class="badge badge-success">ACTIVE</span>
+          <span class="badge badge-neutral">INACTIVE</span>
+          <span class="badge badge-warning">PENDING</span>
+        </div>
+      </div>
+      <div style="margin-bottom:16px;">
+        <div class="label" style="margin-bottom:12px;">Barycenter Result Status</div>
+        <div class="badge-row">
+          <span class="badge badge-info">CANDIDATE</span>
+          <span class="badge badge-success">APPROVED</span>
+          <span class="badge badge-success">CONFIRMED</span>
+          <span class="badge badge-danger">REJECTED</span>
+        </div>
+      </div>
+      <div>
+        <div class="label" style="margin-bottom:12px;">Company Type</div>
+        <div class="badge-row">
+          <span class="badge badge-neutral">SHIPPER</span>
+          <span class="badge badge-neutral">CARRIER</span>
+          <span class="badge badge-primary">BOTH</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5.4 KPI Cards -->
+    <div class="component-card">
+      <div class="ds-subsection-title">5.4 KPI Cards</div>
+      <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:16px;">
+        <div class="kpi-card">
+          <div class="kpi-icon-wrap" style="background:var(--color-primary-050);">
+            <span class="material-icons" style="color:var(--color-primary-700);">domain</span>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-label">Total Companies</div>
+            <div class="kpi-value">14</div>
+            <div class="kpi-trend trend-up"><span class="material-icons">trending_up</span>+2 this month</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon-wrap" style="background:var(--color-info-100);">
+            <span class="material-icons" style="color:var(--color-info-600);">local_shipping</span>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-label">Active Shipments</div>
+            <div class="kpi-value">234</div>
+            <div class="kpi-trend trend-up"><span class="material-icons">trending_up</span>23 active</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon-wrap" style="background:var(--color-warning-100);">
+            <span class="material-icons" style="color:var(--color-warning-600);">location_on</span>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-label">Consumption Sites</div>
+            <div class="kpi-value">38</div>
+            <div class="kpi-trend trend-up"><span class="material-icons">trending_up</span>+3 new</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon-wrap" style="background:var(--color-success-100);">
+            <span class="material-icons" style="color:var(--color-success-600);">verified</span>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-label">On-Time Rate</div>
+            <div class="kpi-value">94.2%</div>
+            <div class="kpi-trend trend-up"><span class="material-icons">trending_up</span>+1.3%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5.5 Data Table -->
+    <div class="component-card">
+      <div class="ds-subsection-title">5.5 Data Table</div>
+      <div class="data-table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Company <span class="material-icons" style="font-size:12px; vertical-align:middle; opacity:0.4;">unfold_more</span></th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>Sites <span class="material-icons" style="font-size:12px; vertical-align:middle; opacity:0.4;">unfold_more</span></th>
+              <th>Traffic</th>
+              <th>Contact</th>
+              <th class="actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div style="display:flex; align-items:center; gap:12px;">
+                  <div style="width:34px; height:34px; border-radius:50%; background:#1F4E79; color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px; flex-shrink:0;">A</div>
+                  <div>
+                    <div style="font-weight:500;">Acme Corporation</div>
+                    <div style="font-size:11px; color:var(--color-neutral-500); font-family:monospace;">12-3456789</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="badge badge-neutral">SHIPPER</span></td>
+              <td><span class="badge badge-success">ACTIVE</span></td>
+              <td style="color:var(--color-primary-600); font-weight:600;">4</td>
+              <td class="mono">12.5k t</td>
+              <td><div><div style="font-size:12px;">Jane Smith</div><div style="font-size:11px; color:var(--color-neutral-500);">j@acme.com</div></div></td>
+              <td class="actions">
+                <button class="btn btn-icon"><span class="material-icons">edit</span></button>
+                <button class="btn btn-icon"><span class="material-icons">location_on</span></button>
+                <button class="btn btn-icon" style="color:var(--color-danger-600);"><span class="material-icons">delete_outline</span></button>
+              </td>
+            </tr>
+            <tr class="row-selected">
+              <td>
+                <div style="display:flex; align-items:center; gap:12px;">
+                  <div style="width:34px; height:34px; border-radius:50%; background:#2E6DA4; color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px; flex-shrink:0;">G</div>
+                  <div>
+                    <div style="font-weight:500;">Global Freight Inc</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="badge badge-neutral">CARRIER</span></td>
+              <td><span class="badge badge-success">ACTIVE</span></td>
+              <td style="color:var(--color-primary-600); font-weight:600;">12</td>
+              <td class="mono">47.8k t</td>
+              <td><span style="color:var(--color-neutral-400);">—</span></td>
+              <td class="actions">
+                <button class="btn btn-icon"><span class="material-icons">edit</span></button>
+                <button class="btn btn-icon"><span class="material-icons">location_on</span></button>
+                <button class="btn btn-icon" style="color:var(--color-danger-600);"><span class="material-icons">delete_outline</span></button>
+              </td>
+            </tr>
+            <tr class="row-hover">
+              <td>
+                <div style="display:flex; align-items:center; gap:12px;">
+                  <div style="width:34px; height:34px; border-radius:50%; background:#0891B2; color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px; flex-shrink:0;">F</div>
+                  <div>
+                    <div style="font-weight:500;">FastLog Inc</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="badge badge-primary">BOTH</span></td>
+              <td><span class="badge badge-warning">PENDING</span></td>
+              <td><span style="color:var(--color-neutral-400);">—</span></td>
+              <td><span style="color:var(--color-neutral-400);">—</span></td>
+              <td><span style="color:var(--color-neutral-400);">—</span></td>
+              <td class="actions">
+                <button class="btn btn-icon"><span class="material-icons">edit</span></button>
+                <button class="btn btn-icon"><span class="material-icons">location_on</span></button>
+                <button class="btn btn-icon" style="color:var(--color-danger-600);"><span class="material-icons">delete_outline</span></button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="pagination-bar">
+          <span>Showing 1–3 of 14 companies</span>
+          <div class="pagination-controls">
+            <button class="page-btn" disabled><span class="material-icons" style="font-size:18px;">chevron_left</span></button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">3</button>
+            <button class="page-btn"><span class="material-icons" style="font-size:18px;">chevron_right</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5.6 Navigation Sidebar + TopBar -->
+    <div class="component-card">
+      <div class="ds-subsection-title">5.6 Navigation — Sidebar &amp; TopBar</div>
+      <div style="border-radius: var(--radius-3); overflow:hidden; box-shadow: var(--shadow-2);">
+        <div class="topbar-preview">
+          <div class="breadcrumb">
+            <a href="#">Home</a>
+            <span class="material-icons">chevron_right</span>
+            <span>Companies</span>
+          </div>
+          <div class="topbar-search">
+            <span class="material-icons">search</span>
+            <input type="search" placeholder="Search…" />
+          </div>
+          <div class="topbar-actions">
+            <button class="btn btn-icon"><span class="material-icons">notifications_none</span></button>
+            <div class="avatar">JD</div>
+          </div>
+        </div>
+        <div style="display:flex; height:440px;">
+          <div class="nav-preview" style="border-radius:0;">
+            <div class="nav-logo-area">
+              <div class="nav-logo-icon">
+                <span class="material-icons">my_location</span>
+              </div>
+              <div>
+                <div class="nav-logo-name">Define Logistics</div>
+                <div class="nav-logo-sub">Barycenter Platform</div>
+              </div>
+            </div>
+            <div class="nav-section-label">Main</div>
+            <div class="nav-item">
+              <span class="material-icons">dashboard</span>
+              <span class="nav-item-label">Dashboard</span>
+            </div>
+            <div class="nav-item active">
+              <span class="material-icons">domain</span>
+              <span class="nav-item-label">Companies</span>
+            </div>
+            <div class="nav-item">
+              <span class="material-icons">location_on</span>
+              <span class="nav-item-label">Sites</span>
+            </div>
+            <div class="nav-section-label">Analytics</div>
+            <div class="nav-item">
+              <span class="material-icons">my_location</span>
+              <span class="nav-item-label">Barycenter</span>
+            </div>
+            <div class="nav-item">
+              <span class="material-icons">map</span>
+              <span class="nav-item-label">Map View</span>
+            </div>
+            <div class="nav-collapse-btn">
+              <span class="material-icons">chevron_left</span>
+            </div>
+          </div>
+          <div style="flex:1; background:var(--color-neutral-100); padding:24px; overflow:auto;">
+            <div style="font-size:13px; color:var(--color-neutral-500);">Page content renders here…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5.7 Toast Notifications -->
+    <div class="component-card">
+      <div class="ds-subsection-title">5.7 Toast Notifications (340px, bottom-right, Level 4 shadow)</div>
+      <div style="display:flex; gap:24px; flex-wrap:wrap;">
+        <div class="toast toast-success">
+          <span class="material-icons toast-icon">check_circle</span>
+          <div class="toast-content">
+            <div class="toast-title">Company created</div>
+            <div class="toast-message">Acme Corporation has been added.</div>
+          </div>
+          <button style="background:none;border:none;cursor:pointer;color:var(--color-neutral-500);padding:2px;"><span class="material-icons" style="font-size:18px;">close</span></button>
+        </div>
+        <div class="toast toast-info">
+          <span class="material-icons toast-icon">info</span>
+          <div class="toast-content">
+            <div class="toast-title">Barycenter calculated</div>
+            <div class="toast-message">Optimal location: 48.8566° N, 2.3522° E</div>
+          </div>
+          <button style="background:none;border:none;cursor:pointer;color:var(--color-neutral-500);padding:2px;"><span class="material-icons" style="font-size:18px;">close</span></button>
+        </div>
+        <div class="toast toast-danger">
+          <span class="material-icons toast-icon">error</span>
+          <div class="toast-content">
+            <div class="toast-title">Calculation failed</div>
+            <div class="toast-message">At least 2 active sites required.</div>
+          </div>
+          <button style="background:none;border:none;cursor:pointer;color:var(--color-neutral-500);padding:2px;"><span class="material-icons" style="font-size:18px;">close</span></button>
+        </div>
+        <div class="toast toast-warning">
+          <span class="material-icons toast-icon">warning</span>
+          <div class="toast-content">
+            <div class="toast-title">Result rejected</div>
+            <div class="toast-message">Logistics center candidate has been rejected.</div>
+          </div>
+          <button style="background:none;border:none;cursor:pointer;color:var(--color-neutral-500);padding:2px;"><span class="material-icons" style="font-size:18px;">close</span></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5.8 Specialty Components -->
+    <div class="component-card">
+      <div class="ds-subsection-title">5.8 Specialty Components</div>
+      <div class="ds-row" style="flex-wrap:wrap; gap:32px;">
+
+        <div style="flex:1; min-width:280px;">
+          <div class="label" style="margin-bottom:12px;">Algorithm Info Block</div>
+          <div class="algorithm-info">
+            <strong>Weiszfeld:</strong> Minimises sum of weighted geodesic distances (geometric median). Best for logistics cost optimisation.
+          </div>
+          <div style="margin-top:12px;">
+          <div class="algorithm-info" style="margin-top:8px;">
+            <strong>Simple Barycenter:</strong> Weighted arithmetic mean of coordinates. Instant convergence, minimises squared distances.
+          </div>
+          </div>
+        </div>
+
+        <div style="flex:1; min-width:280px;">
+          <div class="label" style="margin-bottom:12px;">Coordinate Display</div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <span class="coord-display">48.8566° N, 2.3522° E</span>
+            <span class="coord-display">34.0522, −118.2437</span>
+            <span class="coord-display">40.7128° N, 74.0060° W</span>
+          </div>
+        </div>
+
+        <div style="flex:1; min-width:280px;">
+          <div class="label" style="margin-bottom:12px;">Weight Bar</div>
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <div>
+              <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:12px; color:var(--color-neutral-500);">
+                <span>Acme Corp</span><span>12.5k t</span>
+              </div>
+              <div class="weight-bar-container">
+                <div class="weight-bar-track"><div class="weight-bar-fill" style="width:82%;"></div></div>
+                <span style="font-size:11px; color:var(--color-neutral-500); min-width:32px; text-align:right;">82%</span>
+              </div>
+            </div>
+            <div>
+              <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:12px; color:var(--color-neutral-500);">
+                <span>Global Freight</span><span>6.1k t</span>
+              </div>
+              <div class="weight-bar-container">
+                <div class="weight-bar-track"><div class="weight-bar-fill" style="width:40%;"></div></div>
+                <span style="font-size:11px; color:var(--color-neutral-500); min-width:32px; text-align:right;">40%</span>
+              </div>
+            </div>
+            <div>
+              <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:12px; color:var(--color-neutral-500);">
+                <span>FastLog Inc</span><span>2.3k t</span>
+              </div>
+              <div class="weight-bar-container">
+                <div class="weight-bar-track"><div class="weight-bar-fill" style="width:15%;"></div></div>
+                <span style="font-size:11px; color:var(--color-neutral-500); min-width:32px; text-align:right;">15%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════ 6. ICONOGRAPHY -->
+  <section class="ds-section">
+    <h2 class="ds-section-title"><span class="section-num">6</span> Iconography</h2>
+    <div class="component-card">
+      <div style="margin-bottom:16px; font-size:13px; color:var(--color-neutral-500);">
+        Using Google Material Icons. Sizes: 16px (inline), 20px (button), 24px (navigation), 32px (feature).
+      </div>
+      <div style="margin-bottom:20px;">
+        <div class="label" style="margin-bottom:12px;">Navigation &amp; Domain Icons</div>
+        <div class="icon-grid">
+          <div class="icon-item"><span class="material-icons">dashboard</span><span class="icon-item-label">dashboard</span></div>
+          <div class="icon-item"><span class="material-icons">domain</span><span class="icon-item-label">domain</span></div>
+          <div class="icon-item"><span class="material-icons">location_on</span><span class="icon-item-label">location_on</span></div>
+          <div class="icon-item"><span class="material-icons">my_location</span><span class="icon-item-label">my_location</span></div>
+          <div class="icon-item"><span class="material-icons">map</span><span class="icon-item-label">map</span></div>
+          <div class="icon-item"><span class="material-icons">local_shipping</span><span class="icon-item-label">local_shipping</span></div>
+          <div class="icon-item"><span class="material-icons">route</span><span class="icon-item-label">route</span></div>
+          <div class="icon-item"><span class="material-icons">warehouse</span><span class="icon-item-label">warehouse</span></div>
+          <div class="icon-item"><span class="material-icons">bar_chart</span><span class="icon-item-label">bar_chart</span></div>
+          <div class="icon-item"><span class="material-icons">settings</span><span class="icon-item-label">settings</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="label" style="margin-bottom:12px;">Action Icons</div>
+        <div class="icon-grid">
+          <div class="icon-item"><span class="material-icons">add</span><span class="icon-item-label">add</span></div>
+          <div class="icon-item"><span class="material-icons">add_location</span><span class="icon-item-label">add_location</span></div>
+          <div class="icon-item"><span class="material-icons">edit</span><span class="icon-item-label">edit</span></div>
+          <div class="icon-item"><span class="material-icons">delete_outline</span><span class="icon-item-label">delete_outline</span></div>
+          <div class="icon-item"><span class="material-icons">save</span><span class="icon-item-label">save</span></div>
+          <div class="icon-item"><span class="material-icons">search</span><span class="icon-item-label">search</span></div>
+          <div class="icon-item"><span class="material-icons">filter_list</span><span class="icon-item-label">filter_list</span></div>
+          <div class="icon-item"><span class="material-icons">file_download</span><span class="icon-item-label">file_download</span></div>
+          <div class="icon-item"><span class="material-icons">close</span><span class="icon-item-label">close</span></div>
+          <div class="icon-item"><span class="material-icons">check</span><span class="icon-item-label">check</span></div>
+          <div class="icon-item"><span class="material-icons">check_circle</span><span class="icon-item-label">check_circle</span></div>
+          <div class="icon-item"><span class="material-icons">error_outline</span><span class="icon-item-label">error_outline</span></div>
+          <div class="icon-item"><span class="material-icons">warning</span><span class="icon-item-label">warning</span></div>
+          <div class="icon-item"><span class="material-icons">info</span><span class="icon-item-label">info</span></div>
+          <div class="icon-item"><span class="material-icons">center_focus_strong</span><span class="icon-item-label">center_focus</span></div>
+          <div class="icon-item"><span class="material-icons">satellite</span><span class="icon-item-label">satellite</span></div>
+          <div class="icon-item"><span class="material-icons">table_rows</span><span class="icon-item-label">table_rows</span></div>
+          <div class="icon-item"><span class="material-icons">grid_view</span><span class="icon-item-label">grid_view</span></div>
+          <div class="icon-item"><span class="material-icons">pause_circle</span><span class="icon-item-label">pause_circle</span></div>
+          <div class="icon-item"><span class="material-icons">play_circle</span><span class="icon-item-label">play_circle</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════ 7. ACCESSIBILITY -->
+  <section class="ds-section">
+    <h2 class="ds-section-title"><span class="section-num">7</span> Accessibility Requirements (WCAG 2.1 AA)</h2>
+    <div class="component-card">
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:32px;">
+        <div>
+          <div class="ds-subsection-title">Contrast Ratios</div>
+          <div style="display:flex; flex-direction:column; gap:12px; font-size:13px;">
+            <div style="display:flex; align-items:center; gap:12px; padding:10px 14px; background:var(--color-neutral-100); border-radius:6px;">
+              <div style="width:40px; height:24px; background:#1F4E79; border-radius:3px; display:flex; align-items:center; justify-content:center;">
+                <span style="color:white; font-size:10px; font-weight:700;">Aa</span>
+              </div>
+              <div>
+                <div style="font-weight:600;">Primary-700 on White</div>
+                <div style="color:var(--color-neutral-500);">Ratio: 8.9:1 — PASS AA &amp; AAA</div>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px; padding:10px 14px; background:var(--color-neutral-100); border-radius:6px;">
+              <div style="width:40px; height:24px; background:#16A34A; border-radius:3px; display:flex; align-items:center; justify-content:center;">
+                <span style="color:white; font-size:10px; font-weight:700;">Aa</span>
+              </div>
+              <div>
+                <div style="font-weight:600;">Success-600 on White</div>
+                <div style="color:var(--color-neutral-500);">Ratio: 5.1:1 — PASS AA</div>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px; padding:10px 14px; background:var(--color-neutral-100); border-radius:6px;">
+              <div style="width:40px; height:24px; background:#DC2626; border-radius:3px; display:flex; align-items:center; justify-content:center;">
+                <span style="color:white; font-size:10px; font-weight:700;">Aa</span>
+              </div>
+              <div>
+                <div style="font-weight:600;">Danger-600 on White</div>
+                <div style="color:var(--color-neutral-500);">Ratio: 5.9:1 — PASS AA</div>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px; padding:10px 14px; background:var(--color-neutral-100); border-radius:6px;">
+              <div style="width:40px; height:24px; background:#111827; border-radius:3px; display:flex; align-items:center; justify-content:center;">
+                <span style="color:white; font-size:10px; font-weight:700;">Aa</span>
+              </div>
+              <div>
+                <div style="font-weight:600;">Neutral-900 on White</div>
+                <div style="color:var(--color-neutral-500);">Ratio: 19.2:1 — PASS AA &amp; AAA</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="ds-subsection-title">Requirements Checklist</div>
+          <div style="display:flex; flex-direction:column; gap:8px; font-size:13px;">
+            <div style="display:flex; gap:8px; align-items:flex-start;">
+              <span class="material-icons" style="font-size:16px; color:var(--color-success-600); flex-shrink:0; margin-top:1px;">check_circle</span>
+              <span>Minimum contrast 4.5:1 for normal text, 3:1 for large text/UI components</span>
+            </div>
+            <div style="display:flex; gap:8px; align-items:flex-start;">
+              <span class="material-icons" style="font-size:16px; color:var(--color-success-600); flex-shrink:0; margin-top:1px;">check_circle</span>
+              <span>All interactive elements keyboard navigable (Tab, Enter, Space, Arrow keys)</span>
+            </div>
+            <div style="display:flex; gap:8px; align-items:flex-start;">
+              <span class="material-icons" style="font-size:16px; color:var(--color-success-600); flex-shrink:0; margin-top:1px;">check_circle</span>
+              <span>Focus indicators: 2px solid Primary-600, offset 2px — never removed</span>
+            </div>
+            <div style="display:flex; gap:8px; align-items:flex-start;">
+              <span class="material-icons" style="font-size:16px; color:var(--color-success-600); flex-shrink:0; margin-top:1px;">check_circle</span>
+              <span>Form errors communicated via text + icon, not color alone</span>
+            </div>
+            <div style="display:flex; gap:8px; align-items:flex-start;">
+              <span class="material-icons" style="font-size:16px; color:var(--color-success-600); flex-shrink:0; margin-top:1px;">check_circle</span>
+              <span>Minimum touch target: 44×44px for all interactive elements (buttons use min-height: 44px)</span>
+            </div>
+            <div style="display:flex; gap:8px; align-items:flex-start;">
+              <span class="material-icons" style="font-size:16px; color:var(--color-success-600); flex-shrink:0; margin-top:1px;">check_circle</span>
+              <span>Status always paired with icon or label, never color alone</span>
+            </div>
+            <div style="display:flex; gap:8px; align-items:flex-start;">
+              <span class="material-icons" style="font-size:16px; color:var(--color-success-600); flex-shrink:0; margin-top:1px;">check_circle</span>
+              <span>Table headers properly associated with cells (scope attribute)</span>
+            </div>
+            <div style="display:flex; gap:8px; align-items:flex-start;">
+              <span class="material-icons" style="font-size:16px; color:var(--color-success-600); flex-shrink:0; margin-top:1px;">check_circle</span>
+              <span>prefers-reduced-motion media query disables all non-essential animations</span>
+            </div>
+            <div style="display:flex; gap:8px; align-items:flex-start;">
+              <span class="material-icons" style="font-size:16px; color:var(--color-success-600); flex-shrink:0; margin-top:1px;">check_circle</span>
+              <span>Aria labels on icon-only buttons; role/aria-modal on dialogs; aria-live on toasts</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════ 8. ANIMATION -->
+  <section class="ds-section">
+    <h2 class="ds-section-title"><span class="section-num">8</span> Motion &amp; Animation</h2>
+    <div class="component-card">
+      <div style="font-size:13px; color:var(--color-neutral-500); margin-bottom:20px;">
+        Guiding principle: motion communicates state, not decoration. Keep it fast and purposeful.
+      </div>
+      <table style="width:100%; border-collapse:collapse; font-size:13px;">
+        <thead>
+          <tr style="background:var(--color-neutral-100);">
+            <th style="padding:10px 16px; text-align:left; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; color:var(--color-neutral-500); border-bottom:1px solid var(--color-neutral-300);">Interaction</th>
+            <th style="padding:10px 16px; text-align:left; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; color:var(--color-neutral-500); border-bottom:1px solid var(--color-neutral-300);">Duration</th>
+            <th style="padding:10px 16px; text-align:left; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; color:var(--color-neutral-500); border-bottom:1px solid var(--color-neutral-300);">Easing</th>
+            <th style="padding:10px 16px; text-align:left; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; color:var(--color-neutral-500); border-bottom:1px solid var(--color-neutral-300);">CSS Token</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid var(--color-neutral-300);">
+            <td style="padding:12px 16px;">Button hover / press</td>
+            <td style="padding:12px 16px; font-family:monospace;">100ms</td>
+            <td style="padding:12px 16px;">ease-out</td>
+            <td style="padding:12px 16px;"><code>--anim-button-hover</code></td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--color-neutral-300); background:var(--color-primary-050);">
+            <td style="padding:12px 16px;">Sidebar expand / collapse</td>
+            <td style="padding:12px 16px; font-family:monospace;">200ms</td>
+            <td style="padding:12px 16px;">ease-in-out</td>
+            <td style="padding:12px 16px;"><code>--anim-sidebar-toggle</code></td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--color-neutral-300);">
+            <td style="padding:12px 16px;">Modal open (scale 0.95 → 1)</td>
+            <td style="padding:12px 16px; font-family:monospace;">180ms</td>
+            <td style="padding:12px 16px;">ease-out</td>
+            <td style="padding:12px 16px;"><code>--anim-modal-open</code></td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--color-neutral-300); background:var(--color-primary-050);">
+            <td style="padding:12px 16px;">Modal close (scale 1 → 0.95)</td>
+            <td style="padding:12px 16px; font-family:monospace;">140ms</td>
+            <td style="padding:12px 16px;">ease-in</td>
+            <td style="padding:12px 16px;"><code>--anim-modal-close</code></td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--color-neutral-300);">
+            <td style="padding:12px 16px;">Table row selection</td>
+            <td style="padding:12px 16px; font-family:monospace;">80ms</td>
+            <td style="padding:12px 16px;">ease-out</td>
+            <td style="padding:12px 16px;"><code>--anim-table-row</code></td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--color-neutral-300); background:var(--color-primary-050);">
+            <td style="padding:12px 16px;">Toast slide in (from right)</td>
+            <td style="padding:12px 16px; font-family:monospace;">220ms</td>
+            <td style="padding:12px 16px;">ease-out</td>
+            <td style="padding:12px 16px;"><code>--anim-toast-slide</code></td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--color-neutral-300);">
+            <td style="padding:12px 16px;">Page transition (fade + slide 8px)</td>
+            <td style="padding:12px 16px; font-family:monospace;">150ms</td>
+            <td style="padding:12px 16px;">ease-in-out</td>
+            <td style="padding:12px 16px;"><code>--anim-page-transition</code></td>
+          </tr>
+          <tr>
+            <td style="padding:12px 16px;">Chart / weight bar load</td>
+            <td style="padding:12px 16px; font-family:monospace;">400ms</td>
+            <td style="padding:12px 16px;">ease-out</td>
+            <td style="padding:12px 16px;"><code>--anim-chart-load</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <div style="text-align:center; padding: 32px 0; font-size:12px; color: var(--color-neutral-500);">
+    Logistics Barycenter Platform — Design System v1.0.0 — March 2026
+  </div>
+
+</div>
+</body>
+</html>

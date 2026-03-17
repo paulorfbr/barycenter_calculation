@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Responsive Breakpoints — All Screens</title>
+  <link rel="stylesheet" href="../design/design-tokens.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #d4d8e1;
+      padding: 40px;
+      color: #111827;
+      overflow-x: auto;
+    }
+
+    h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .subtitle { font-size: 13px; color: #6B7280; margin-bottom: 40px; }
+
+    .breakpoint-section { margin-bottom: 64px; }
+    .breakpoint-label {
+      font-size: 14px; font-weight: 700; color: #374151;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      margin-bottom: 20px; display: flex; align-items: center; gap: 12px;
+    }
+    .breakpoint-badge {
+      background: #1F4E79; color: white;
+      font-size: 11px; padding: 4px 12px; border-radius: 99px; font-weight: 600;
+    }
+
+    .frames-row {
+      display: flex;
+      gap: 24px;
+      align-items: flex-start;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding-bottom: 16px;
+    }
+
+    .frame-wrapper {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .frame-caption {
+      font-size: 11px;
+      font-family: monospace;
+      color: #6B7280;
+      text-align: center;
+    }
+
+    .device-frame {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ── Compact (1024px) ────────────────────────────────────── */
+    .frame-1024 { width: 640px; height: 480px; }
+    .frame-1024 iframe { width: 1024px; height: 768px; transform: scale(0.625); transform-origin: top left; }
+
+    /* ── Standard (1280px) ───────────────────────────────────── */
+    .frame-1280 { width: 800px; height: 500px; }
+    .frame-1280 iframe { width: 1280px; height: 800px; transform: scale(0.625); transform-origin: top left; }
+
+    /* ── Wide (1600px) ────────────────────────────────────────── */
+    .frame-1600 { width: 720px; height: 450px; }
+    .frame-1600 iframe { width: 1600px; height: 1000px; transform: scale(0.45); transform-origin: top left; }
+
+    /* ── Tablet (768px) ───────────────────────────────────────── */
+    .frame-768 { width: 480px; height: 600px; }
+    .frame-768 iframe { width: 768px; height: 1024px; transform: scale(0.625); transform-origin: top left; }
+
+    /* ── Mobile (375px) ───────────────────────────────────────── */
+    .frame-mobile { width: 234px; height: 520px; }
+    .frame-mobile-device {
+      width: 258px; height: 544px;
+      background: #1F2937;
+      border-radius: 36px;
+      padding: 14px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 0 0 2px #374151;
+      flex-shrink: 0;
+    }
+    .frame-mobile-screen {
+      width: 100%;
+      height: 100%;
+      border-radius: 24px;
+      overflow: hidden;
+      background: #F3F4F6;
+    }
+    .frame-mobile-screen iframe { width: 375px; height: 812px; transform: scale(0.625); transform-origin: top left; }
+
+    .divider-line {
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #D1D5DB 20%, #D1D5DB 80%, transparent);
+      margin: 32px 0;
+    }
+
+    /* Breakpoint spec table */
+    .spec-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+      margin-bottom: 32px;
+      font-size: 13px;
+    }
+    .spec-table th {
+      padding: 10px 16px; background: #F3F4F6; text-align: left;
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.04em; color: #6B7280; border-bottom: 1px solid #E5E7EB;
+    }
+    .spec-table td { padding: 12px 16px; border-bottom: 1px solid #E5E7EB; }
+    .spec-table tr:last-child td { border-bottom: none; }
+    .spec-table tr:nth-child(even) td { background: #F9FAFB; }
+    code { font-family: monospace; font-size: 11px; background: #F3F4F6; padding: 2px 6px; border-radius: 3px; color: #1F4E79; }
+  </style>
+</head>
+<body>
+
+<h1>Responsive Breakpoints</h1>
+<p class="subtitle">All screen prototypes across Compact (1024px), Standard (1280px), Wide (1600px), Tablet (768px), and Mobile (375px)</p>
+
+<!-- ── Breakpoint spec table ──────────────────────────────────────────── -->
+<table class="spec-table">
+  <thead>
+    <tr>
+      <th>Breakpoint</th>
+      <th>Width Range</th>
+      <th>Sidebar</th>
+      <th>Content Grid</th>
+      <th>KPI Cards</th>
+      <th>Barycenter Layout</th>
+      <th>CSS Media Query</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Wide</strong></td>
+      <td>1600px+</td>
+      <td>Expanded (240px)</td>
+      <td>Content max-width applies</td>
+      <td>4 columns</td>
+      <td>360px panel + 1fr map</td>
+      <td><code>(min-width: 1600px)</code></td>
+    </tr>
+    <tr>
+      <td><strong>Standard</strong></td>
+      <td>1280–1599px</td>
+      <td>Expanded (240px)</td>
+      <td>Normal flow</td>
+      <td>4 columns</td>
+      <td>360px panel + 1fr map</td>
+      <td>Default (base styles)</td>
+    </tr>
+    <tr>
+      <td><strong>Compact</strong></td>
+      <td>1024–1279px</td>
+      <td>Collapsed (64px, icon-only)</td>
+      <td>Normal flow</td>
+      <td>2 columns</td>
+      <td>Single column stack</td>
+      <td><code>(max-width: 1023px)</code></td>
+    </tr>
+    <tr>
+      <td><strong>Tablet</strong></td>
+      <td>768–1023px</td>
+      <td>Hidden (hamburger trigger)</td>
+      <td>2-column max</td>
+      <td>2 columns</td>
+      <td>Single column stack</td>
+      <td><code>(max-width: 1023px)</code></td>
+    </tr>
+    <tr>
+      <td><strong>Mobile</strong></td>
+      <td>375–767px</td>
+      <td>Hidden (bottom nav overlay)</td>
+      <td>Single column</td>
+      <td>1–2 columns</td>
+      <td>Single column stack</td>
+      <td><code>(max-width: 767px)</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ═══════════════════════════════════ STANDARD (1280px) -->
+<div class="breakpoint-section">
+  <div class="breakpoint-label">
+    <span class="breakpoint-badge">STANDARD — 1280px</span>
+    Reference viewport. Sidebar expanded 240px. All grids at full columns.
+  </div>
+  <div class="frames-row">
+    <div class="frame-wrapper">
+      <div class="frame-caption">Dashboard — 1280×800</div>
+      <div class="device-frame frame-1280">
+        <iframe src="screen-01-dashboard.html" scrolling="no" title="Dashboard 1280px" loading="lazy"></iframe>
+      </div>
+    </div>
+    <div class="frame-wrapper">
+      <div class="frame-caption">Companies — 1280×800</div>
+      <div class="device-frame frame-1280">
+        <iframe src="screen-02-companies.html" scrolling="no" title="Companies 1280px" loading="lazy"></iframe>
+      </div>
+    </div>
+    <div class="frame-wrapper">
+      <div class="frame-caption">Barycenter — 1280×800</div>
+      <div class="device-frame frame-1280">
+        <iframe src="screen-04-barycenter.html" scrolling="no" title="Barycenter 1280px" loading="lazy"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider-line"></div>
+
+<!-- ═══════════════════════════════════ COMPACT (1024px) -->
+<div class="breakpoint-section">
+  <div class="breakpoint-label">
+    <span class="breakpoint-badge">COMPACT — 1024px</span>
+    Sidebar collapses to 64px icon-only. KPI grid drops to 2 columns.
+  </div>
+  <div class="frames-row">
+    <div class="frame-wrapper">
+      <div class="frame-caption">Dashboard — 1024×768</div>
+      <div class="device-frame frame-1024">
+        <iframe src="screen-01-dashboard.html" scrolling="no" title="Dashboard 1024px" loading="lazy"></iframe>
+      </div>
+    </div>
+    <div class="frame-wrapper">
+      <div class="frame-caption">Sites Table — 1024×768</div>
+      <div class="device-frame frame-1024">
+        <iframe src="screen-03-sites.html" scrolling="no" title="Sites 1024px" loading="lazy"></iframe>
+      </div>
+    </div>
+    <div class="frame-wrapper">
+      <div class="frame-caption">Map View — 1024×768</div>
+      <div class="device-frame frame-1024">
+        <iframe src="screen-05-map.html" scrolling="no" title="Map 1024px" loading="lazy"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider-line"></div>
+
+<!-- ═══════════════════════════════════ WIDE (1600px) -->
+<div class="breakpoint-section">
+  <div class="breakpoint-label">
+    <span class="breakpoint-badge">WIDE — 1600px</span>
+    Full expanded sidebar. Content areas use available space. Barycenter panel stays 360px.
+  </div>
+  <div class="frames-row">
+    <div class="frame-wrapper">
+      <div class="frame-caption">Dashboard — 1600×1000</div>
+      <div class="device-frame frame-1600">
+        <iframe src="screen-01-dashboard.html" scrolling="no" title="Dashboard 1600px" loading="lazy"></iframe>
+      </div>
+    </div>
+    <div class="frame-wrapper">
+      <div class="frame-caption">Barycenter — 1600×1000</div>
+      <div class="device-frame frame-1600">
+        <iframe src="screen-04-barycenter.html" scrolling="no" title="Barycenter 1600px" loading="lazy"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider-line"></div>
+
+<!-- ═══════════════════════════════════ MOBILE (375px) -->
+<div class="breakpoint-section">
+  <div class="breakpoint-label">
+    <span class="breakpoint-badge">MOBILE — 375px</span>
+    Sidebar hidden. All grids collapse to 1 column. Touch-friendly 44px targets.
+  </div>
+  <div class="frames-row">
+    <div class="frame-wrapper">
+      <div class="frame-caption">Dashboard — iPhone 14</div>
+      <div class="frame-mobile-device">
+        <div class="frame-mobile-screen">
+          <iframe src="screen-01-dashboard.html" scrolling="yes" title="Dashboard Mobile" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+    <div class="frame-wrapper">
+      <div class="frame-caption">Companies — iPhone 14</div>
+      <div class="frame-mobile-device">
+        <div class="frame-mobile-screen">
+          <iframe src="screen-02-companies.html" scrolling="yes" title="Companies Mobile" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+    <div class="frame-wrapper">
+      <div class="frame-caption">Sites — iPhone 14</div>
+      <div class="frame-mobile-device">
+        <div class="frame-mobile-screen">
+          <iframe src="screen-03-sites.html" scrolling="yes" title="Sites Mobile" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+    <div class="frame-wrapper">
+      <div class="frame-caption">Barycenter — iPhone 14</div>
+      <div class="frame-mobile-device">
+        <div class="frame-mobile-screen">
+          <iframe src="screen-04-barycenter.html" scrolling="yes" title="Barycenter Mobile" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

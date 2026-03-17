@@ -1,0 +1,99 @@
+# =============================================================================
+# Docker Compose — Local Development Environment
+#
+# Services:
+#   logistics-api   — Spring Boot fat JAR running on port 8080
+#                     Serves Angular SPA from classpath:/static/
+#   nginx-dev       — Optional Nginx reverse proxy on port 80 for local HTTPS
+#                     simulation and gzip testing.  Remove this service and
+#                     access port 8080 directly if you prefer.
+#
+# Usage:
+#   # Start all services (builds image from source)
+#   docker compose up --build
+#
+#   # Start only the API (Angular already built into JAR)
+#   docker compose up logistics-api
+#
+#   # Run in the background
+#   docker compose up -d
+#
+#   # Tail logs
+#   docker compose logs -f logistics-api
+#
+#   # Stop and remove containers (keeps volumes)
+#   docker compose down
+#
+#   # Stop and remove containers + named volumes
+#   docker compose down -v
+# =============================================================================
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # Spring Boot API — serves both the REST API and the Angular SPA
+  # ---------------------------------------------------------------------------
+  logistics-api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: runtime
+      args:
+        BUILD_DATE: "${BUILD_DATE:-local}"
+        GIT_COMMIT: "${GIT_COMMIT:-local}"
+        GIT_BRANCH: "${GIT_BRANCH:-local}"
+        VERSION:    "${VERSION:-dev}"
+    image: logistics-api:dev
+    container_name: logistics-api-dev
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: "dev"
+      # Override CORS origins for local Angular dev server
+      LOGISTICS_CORS_ALLOWED_ORIGINS: "http://localhost:4200,http://localhost:80"
+      # JVM container settings
+      JAVA_OPTS: >-
+        -XX:+UseContainerSupport
+        -XX:MaxRAMPercentage=75.0
+        -XX:+ExitOnOutOfMemoryError
+        -Djava.security.egd=file:/dev/./urandom
+        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+    ports:
+      - "8080:8080"
+      - "5005:5005"   # Remote debug port
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q '\"status\":\"UP\"' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - logistics-net
+    labels:
+      com.define-company.service: "logistics-api"
+      com.define-company.environment: "local"
+
+  # ---------------------------------------------------------------------------
+  # Nginx reverse proxy (optional — for local HTTP/gzip simulation)
+  # ---------------------------------------------------------------------------
+  nginx-proxy:
+    image: nginx:1.25-alpine
+    container_name: logistics-nginx-dev
+    depends_on:
+      logistics-api:
+        condition: service_healthy
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.dev.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - logistics-net
+    restart: unless-stopped
+    profiles:
+      - proxy   # Only started when: docker compose --profile proxy up
+
+networks:
+  logistics-net:
+    driver: bridge
+    name: logistics-local

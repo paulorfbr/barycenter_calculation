@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Component — Modal States</title>
+  <link rel="stylesheet" href="../design/design-tokens.css" />
+  <link rel="stylesheet" href="../design/prototype-shell.css" />
+  <style>
+    body { background: #d4d8e1; padding: 48px 32px; overflow-y: auto; height: auto; }
+    .preview-row { display: flex; gap: 48px; flex-wrap: wrap; align-items: flex-start; margin-bottom: 48px; }
+    .preview-label { font-family: var(--font-family-mono); font-size: 12px; color: #666; margin-bottom: 12px; }
+    .modal-static { position: relative; background: var(--color-neutral-000); border-radius: var(--radius-4); box-shadow: var(--shadow-3); width: 100%; display: flex; flex-direction: column; }
+    .modal-static .modal-footer { border-radius: 0 0 var(--radius-4) var(--radius-4); }
+    h1 { font-size: 24px; font-weight: 700; color: #222; margin-bottom: 32px; font-family: 'Inter', sans-serif; }
+    h2 { font-size: 16px; font-weight: 600; color: #444; margin-bottom: 16px; font-family: 'Inter', sans-serif; margin-top: 24px; }
+  </style>
+</head>
+<body>
+
+<h1>Modal States — Component Library</h1>
+
+<!-- ═══════════════════════════════════ CREATE COMPANY MODAL -->
+<h2>Create Company Modal (600px max-width)</h2>
+<div class="preview-row">
+  <div style="width:600px;">
+    <div class="preview-label">State: Empty / Default</div>
+    <div class="modal-static">
+      <div class="modal-header">
+        <h2>New Company</h2>
+        <button class="btn btn-icon" aria-label="Close"><span class="material-icons">close</span></button>
+      </div>
+      <div class="modal-body">
+        <div class="grid-2">
+          <div class="form-group" style="grid-column:span 2;">
+            <label class="form-label" for="mc1">Company Name *</label>
+            <input id="mc1" class="form-control" type="text" placeholder="e.g. Acme Corporation" />
+          </div>
+        </div>
+        <div class="grid-2" style="margin-top:16px;">
+          <div class="form-group">
+            <label class="form-label" for="mc2">Type *</label>
+            <select id="mc2" class="form-control">
+              <option>Shipper</option><option>Carrier</option><option>Both</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="mc3">Tax ID</label>
+            <input id="mc3" class="form-control" type="text" placeholder="e.g. 12-3456789" />
+          </div>
+        </div>
+        <hr class="divider" />
+        <p class="section-title">Contact Information</p>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label" for="mc4">Contact Name</label>
+            <input id="mc4" class="form-control" type="text" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="mc5">Contact Email</label>
+            <input id="mc5" class="form-control" type="email" />
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:16px;">
+          <label class="form-label" for="mc6">Contact Phone</label>
+          <input id="mc6" class="form-control" type="tel" style="max-width:280px;" />
+        </div>
+        <div class="form-group" style="margin-top:16px;">
+          <label class="form-label" for="mc7">Notes</label>
+          <textarea id="mc7" class="form-control" rows="3" placeholder="Optional notes…"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary">Cancel</button>
+        <button class="btn btn-primary" disabled><span class="material-icons">add</span>Create Company</button>
+      </div>
+    </div>
+  </div>
+
+  <div style="width:600px;">
+    <div class="preview-label">State: Validation Errors</div>
+    <div class="modal-static">
+      <div class="modal-header">
+        <h2>New Company</h2>
+        <button class="btn btn-icon" aria-label="Close"><span class="material-icons">close</span></button>
+      </div>
+      <div class="modal-body">
+        <div class="grid-2">
+          <div class="form-group" style="grid-column:span 2;">
+            <label class="form-label" for="me1">Company Name *</label>
+            <input id="me1" class="form-control error" type="text" value="" />
+            <p class="form-error" role="alert"><span class="material-icons">error_outline</span> Name is required (min 2 characters)</p>
+          </div>
+        </div>
+        <div class="grid-2" style="margin-top:16px;">
+          <div class="form-group">
+            <label class="form-label" for="me2">Type *</label>
+            <select id="me2" class="form-control">
+              <option>Shipper</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="me3">Tax ID</label>
+            <input id="me3" class="form-control" type="text" />
+          </div>
+        </div>
+        <hr class="divider" />
+        <p class="section-title">Contact Information</p>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label" for="me4">Contact Name</label>
+            <input id="me4" class="form-control" type="text" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="me5">Contact Email</label>
+            <input id="me5" class="form-control error" type="email" value="not-valid" />
+            <p class="form-error" role="alert"><span class="material-icons">error_outline</span> Enter a valid email address</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary">Cancel</button>
+        <button class="btn btn-primary" disabled><span class="material-icons">add</span>Create Company</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ EDIT COMPANY MODAL (filled state) -->
+<h2>Edit Company Modal (filled / valid)</h2>
+<div class="preview-row">
+  <div style="width:600px;">
+    <div class="modal-static">
+      <div class="modal-header">
+        <h2>Edit Company</h2>
+        <button class="btn btn-icon" aria-label="Close"><span class="material-icons">close</span></button>
+      </div>
+      <div class="modal-body">
+        <div class="grid-2">
+          <div class="form-group" style="grid-column:span 2;">
+            <label class="form-label" for="ef1">Company Name *</label>
+            <input id="ef1" class="form-control" type="text" value="Acme Corporation" />
+          </div>
+        </div>
+        <div class="grid-2" style="margin-top:16px;">
+          <div class="form-group">
+            <label class="form-label" for="ef2">Type *</label>
+            <select id="ef2" class="form-control">
+              <option selected>Shipper</option><option>Carrier</option><option>Both</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="ef3">Status</label>
+            <select id="ef3" class="form-control">
+              <option selected>Active</option><option>Inactive</option><option>Pending</option>
+            </select>
+          </div>
+        </div>
+        <hr class="divider" />
+        <p class="section-title">Contact Information</p>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label" for="ef4">Contact Name</label>
+            <input id="ef4" class="form-control" type="text" value="Jane Smith" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="ef5">Contact Email</label>
+            <input id="ef5" class="form-control" type="email" value="j@acme.com" />
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:16px;">
+          <label class="form-label" for="ef6">Notes</label>
+          <textarea id="ef6" class="form-control" rows="2">Primary logistics partner for European routes.</textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary">Cancel</button>
+        <button class="btn btn-primary"><span class="material-icons">save</span>Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ DELETE CONFIRM MODAL -->
+<h2>Delete Confirmation Modals</h2>
+<div class="preview-row">
+  <div style="width:440px;">
+    <div class="preview-label">Delete Company (with cascading warning)</div>
+    <div class="modal-static">
+      <div class="modal-header">
+        <h2>Delete Company</h2>
+        <button class="btn btn-icon" aria-label="Cancel"><span class="material-icons">close</span></button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete <strong>Acme Corporation</strong>?</p>
+        <p style="margin-top:12px; color:var(--color-danger-600); font-size:var(--font-size-small);">
+          <span class="material-icons" style="font-size:14px; vertical-align:middle;">warning</span>
+          This will also delete all 4 associated consumption sites and cannot be undone.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary">Cancel</button>
+        <button class="btn btn-danger"><span class="material-icons">delete</span>Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div style="width:440px;">
+    <div class="preview-label">Delete Site (simple)</div>
+    <div class="modal-static">
+      <div class="modal-header">
+        <h2>Delete Site</h2>
+        <button class="btn btn-icon" aria-label="Cancel"><span class="material-icons">close</span></button>
+      </div>
+      <div class="modal-body">
+        <p>Delete <strong>Paris Distribution Hub</strong>?</p>
+        <p style="margin-top:8px; font-size:var(--font-size-small); color:var(--color-neutral-500);">
+          This will remove it from all barycenter calculations.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary">Cancel</button>
+        <button class="btn btn-danger"><span class="material-icons">delete</span>Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ ADD SITE MODAL -->
+<h2>Add Consumption Site Modal (800px large)</h2>
+<div class="preview-row">
+  <div style="width:800px;">
+    <div class="modal-static">
+      <div class="modal-header">
+        <h2>Add Consumption Site</h2>
+        <button class="btn btn-icon" aria-label="Close"><span class="material-icons">close</span></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="as1">Site Name *</label>
+          <input id="as1" class="form-control" value="Berlin North Depot" />
+        </div>
+        <div class="form-group" style="margin-top:16px;">
+          <label class="form-label" for="as2">Company *</label>
+          <select id="as2" class="form-control">
+            <option>Acme Corporation</option>
+            <option>Global Freight Inc</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-top:16px;">
+          <label class="form-label" for="as3">Description</label>
+          <input id="as3" class="form-control" placeholder="Optional description" />
+        </div>
+        <hr class="divider" />
+        <p class="section-title">Geographic Coordinates</p>
+        <p class="form-hint" style="margin-bottom:12px;">Enter WGS-84 decimal-degree coordinates.</p>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label" for="as4">Latitude *</label>
+            <input id="as4" class="form-control" type="number" value="52.5200" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="as5">Longitude *</label>
+            <input id="as5" class="form-control" type="number" value="13.4050" />
+          </div>
+        </div>
+        <hr class="divider" />
+        <p class="section-title">Traffic Weight</p>
+        <div class="form-group">
+          <label class="form-label" for="as6">Annual Traffic Volume (tons) *</label>
+          <input id="as6" class="form-control" type="number" value="9800" style="max-width:240px;" />
+          <p class="form-hint">Tonnage used as the weight in barycenter calculation.</p>
+        </div>
+        <hr class="divider" />
+        <p class="section-title">Address (Optional)</p>
+        <div class="grid-3">
+          <div class="form-group">
+            <label class="form-label" for="as7">Street Address</label>
+            <input id="as7" class="form-control" value="Hauptstraße 42" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="as8">City</label>
+            <input id="as8" class="form-control" value="Berlin" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="as9">Country</label>
+            <input id="as9" class="form-control" value="Germany" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary">Cancel</button>
+        <button class="btn btn-primary"><span class="material-icons">add_location</span>Add Site</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ TOAST STATES -->
+<h2>Toast Notification States</h2>
+<div class="preview-row">
+  <div>
+    <div class="preview-label">Success</div>
+    <div class="toast toast-success">
+      <span class="material-icons toast-icon">check_circle</span>
+      <div class="toast-content">
+        <div class="toast-title">Company created</div>
+        <div class="toast-message">Acme Corporation has been added.</div>
+      </div>
+      <button style="background:none;border:none;cursor:pointer;color:var(--color-neutral-500);"><span class="material-icons" style="font-size:18px;">close</span></button>
+    </div>
+  </div>
+  <div>
+    <div class="preview-label">Info</div>
+    <div class="toast toast-info">
+      <span class="material-icons toast-icon">info</span>
+      <div class="toast-content">
+        <div class="toast-title">Barycenter calculated</div>
+        <div class="toast-message">Optimal location: 50.23°N 8.91°E · 247 iterations</div>
+      </div>
+      <button style="background:none;border:none;cursor:pointer;color:var(--color-neutral-500);"><span class="material-icons" style="font-size:18px;">close</span></button>
+    </div>
+  </div>
+  <div>
+    <div class="preview-label">Warning</div>
+    <div class="toast toast-warning">
+      <span class="material-icons toast-icon">warning</span>
+      <div class="toast-content">
+        <div class="toast-title">Result rejected</div>
+        <div class="toast-message">Logistics center candidate has been rejected.</div>
+      </div>
+      <button style="background:none;border:none;cursor:pointer;color:var(--color-neutral-500);"><span class="material-icons" style="font-size:18px;">close</span></button>
+    </div>
+  </div>
+  <div>
+    <div class="preview-label">Danger / Error</div>
+    <div class="toast toast-danger">
+      <span class="material-icons toast-icon">error</span>
+      <div class="toast-content">
+        <div class="toast-title">Calculation failed</div>
+        <div class="toast-message">At least 2 active sites required.</div>
+      </div>
+      <button style="background:none;border:none;cursor:pointer;color:var(--color-neutral-500);"><span class="material-icons" style="font-size:18px;">close</span></button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

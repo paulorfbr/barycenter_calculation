@@ -1,0 +1,476 @@
+# =============================================================================
+# GitLab CI/CD Pipeline — Logistics Barycenter Application
+#
+# Architecture: Angular 17 SPA + Spring Boot 3.2 fat JAR served as one unit.
+# The build.sh script compiles Angular then embeds the output into the Spring
+# Boot static resources before packaging the fat JAR into a Docker image.
+#
+# Stages
+#   build      — compile Angular SPA and Spring Boot fat JAR
+#   test       — unit tests (Java + Angular) and static analysis
+#   security   — container vulnerability scanning and SAST
+#   package    — build and push Docker image to ECR
+#   deploy-dev     — deploy to the development ECS cluster
+#   deploy-staging — deploy to staging (manual gate for main branch)
+#   deploy-prod    — deploy to production (manual gate, main branch only)
+#
+# Required GitLab CI/CD variables (Settings > CI/CD > Variables):
+#   AWS_ACCESS_KEY_ID          — IAM user key (CI deployer, least-privilege)
+#   AWS_SECRET_ACCESS_KEY      — IAM user secret
+#   AWS_DEFAULT_REGION         — e.g. eu-west-1
+#   ECR_REGISTRY               — <account_id>.dkr.ecr.<region>.amazonaws.com
+#   ECR_REPOSITORY             — logistics-api
+#   TF_STATE_BUCKET            — S3 bucket name for Terraform remote state
+#   TF_STATE_LOCK_TABLE        — DynamoDB table for Terraform state locking
+#   TF_VAR_db_password         — (masked) RDS master password if DB is added
+# =============================================================================
+
+default:
+  image: docker:24.0-cli
+  tags:
+    - docker
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: "/certs"
+  DOCKER_BUILDKIT: "1"
+
+  # Project paths
+  ANGULAR_DIR: "src/ui/angular-app"
+  SPRING_DIR:  "logistics-api"
+  IMAGE_NAME:  "${ECR_REGISTRY}/${ECR_REPOSITORY}"
+
+  # Terraform version pinning
+  TF_VERSION: "1.8.5"
+
+  # Cache keys
+  NPM_CACHE_KEY:   "npm-v2-${CI_COMMIT_REF_SLUG}"
+  MAVEN_CACHE_KEY: "maven-v2-${CI_COMMIT_REF_SLUG}"
+
+# ---------------------------------------------------------------------------
+# Stage ordering
+# ---------------------------------------------------------------------------
+stages:
+  - build
+  - test
+  - security
+  - package
+  - deploy-dev
+  - deploy-staging
+  - deploy-prod
+
+# ---------------------------------------------------------------------------
+# Reusable YAML anchors
+# ---------------------------------------------------------------------------
+.aws-login: &aws-login
+  before_script:
+    - apk add --no-cache aws-cli python3 py3-pip curl jq > /dev/null 2>&1
+    - aws --version
+    - aws ecr get-login-password --region "${AWS_DEFAULT_REGION}" |
+        docker login --username AWS --password-stdin "${ECR_REGISTRY}"
+
+.terraform-init: &terraform-init
+  image: hashicorp/terraform:${TF_VERSION}
+  before_script:
+    - apk add --no-cache aws-cli python3 py3-pip jq > /dev/null 2>&1
+    - terraform --version
+    - cd "${TF_ENV_DIR}"
+    - |
+      terraform init \
+        -backend-config="bucket=${TF_STATE_BUCKET}" \
+        -backend-config="key=${TF_ENV}/terraform.tfstate" \
+        -backend-config="region=${AWS_DEFAULT_REGION}" \
+        -backend-config="dynamodb_table=${TF_STATE_LOCK_TABLE}" \
+        -backend-config="encrypt=true" \
+        -reconfigure
+
+# =============================================================================
+# BUILD STAGE
+# =============================================================================
+
+# Build the Angular SPA — produces dist/logistics-barycenter-spa/browser
+build:angular:
+  stage: build
+  image: node:20.14-alpine
+  cache:
+    key: "${NPM_CACHE_KEY}"
+    paths:
+      - "${ANGULAR_DIR}/node_modules/"
+    policy: pull-push
+  script:
+    - cd "${ANGULAR_DIR}"
+    - npm ci --prefer-offline --no-audit
+    - npx ng build --configuration production --output-path dist/logistics-barycenter-spa
+    - echo "Angular build complete. Bundle size:"
+    - du -sh dist/logistics-barycenter-spa/browser
+  artifacts:
+    name: "angular-dist-${CI_COMMIT_SHORT_SHA}"
+    paths:
+      - "${ANGULAR_DIR}/dist/logistics-barycenter-spa/browser/"
+    expire_in: 1 hour
+
+# Build Spring Boot fat JAR (copies Angular dist first via build.sh --api path)
+build:spring:
+  stage: build
+  image: eclipse-temurin:17-jdk-alpine
+  needs:
+    - job: build:angular
+      artifacts: true
+  cache:
+    key: "${MAVEN_CACHE_KEY}"
+    paths:
+      - "${SPRING_DIR}/.m2/repository/"
+    policy: pull-push
+  variables:
+    MAVEN_OPTS: >-
+      -Dmaven.repo.local=${CI_PROJECT_DIR}/${SPRING_DIR}/.m2/repository
+      -Djava.awt.headless=true
+  script:
+    # Copy Angular build output into Spring Boot static resources
+    - rm -rf "${SPRING_DIR}/src/main/resources/static"
+    - mkdir -p "${SPRING_DIR}/src/main/resources/static"
+    - cp -r "${ANGULAR_DIR}/dist/logistics-barycenter-spa/browser/." \
+             "${SPRING_DIR}/src/main/resources/static/"
+    - echo "Copied $(ls ${SPRING_DIR}/src/main/resources/static | wc -l) files to static resources."
+    # Package the fat JAR — skip tests here; tests run in dedicated jobs
+    - cd "${SPRING_DIR}"
+    - ./mvnw clean package -DskipTests -B --no-transfer-progress
+    - echo "Fat JAR size:"
+    - du -sh target/logistics-api.jar
+  artifacts:
+    name: "spring-jar-${CI_COMMIT_SHORT_SHA}"
+    paths:
+      - "${SPRING_DIR}/target/logistics-api.jar"
+    expire_in: 1 hour
+
+# =============================================================================
+# TEST STAGE
+# =============================================================================
+
+# Java unit + integration tests with JaCoCo coverage enforcement (80 % minimum)
+test:java:
+  stage: test
+  image: eclipse-temurin:17-jdk-alpine
+  needs:
+    - job: build:angular
+      artifacts: true
+  cache:
+    key: "${MAVEN_CACHE_KEY}"
+    paths:
+      - "${SPRING_DIR}/.m2/repository/"
+    policy: pull
+  variables:
+    MAVEN_OPTS: >-
+      -Dmaven.repo.local=${CI_PROJECT_DIR}/${SPRING_DIR}/.m2/repository
+      -Djava.awt.headless=true
+  script:
+    # Copy Angular dist so the Spring Boot test slice can load ApplicationContext
+    - rm -rf "${SPRING_DIR}/src/main/resources/static"
+    - mkdir -p "${SPRING_DIR}/src/main/resources/static"
+    - cp -r "${ANGULAR_DIR}/dist/logistics-barycenter-spa/browser/." \
+             "${SPRING_DIR}/src/main/resources/static/"
+    - cd "${SPRING_DIR}"
+    # Run verify: executes Surefire (unit) + Failsafe (integration) + JaCoCo check
+    - ./mvnw verify -B --no-transfer-progress -Pproduction
+  coverage: '/Total.*?([0-9]{1,3})%/'
+  artifacts:
+    name: "test-reports-java-${CI_COMMIT_SHORT_SHA}"
+    when: always
+    reports:
+      junit: "${SPRING_DIR}/target/surefire-reports/TEST-*.xml"
+    paths:
+      - "${SPRING_DIR}/target/site/jacoco/"
+    expire_in: 7 days
+
+# Angular unit tests (Karma + Jasmine, headless Chrome)
+test:angular:
+  stage: test
+  image: node:20.14
+  needs: []
+  cache:
+    key: "${NPM_CACHE_KEY}"
+    paths:
+      - "${ANGULAR_DIR}/node_modules/"
+    policy: pull
+  script:
+    - apt-get update -qq && apt-get install -y -qq chromium > /dev/null 2>&1
+    - export CHROME_BIN=/usr/bin/chromium
+    - cd "${ANGULAR_DIR}"
+    - npm ci --prefer-offline --no-audit
+    - npx ng test --watch=false --browsers=ChromeHeadlessCI
+        --code-coverage --progress=false
+  coverage: '/Statements.*?([0-9]{1,3}\.[0-9]+)%/'
+  artifacts:
+    name: "test-reports-angular-${CI_COMMIT_SHORT_SHA}"
+    when: always
+    reports:
+      junit: "${ANGULAR_DIR}/coverage/junit/TESTS-*.xml"
+    paths:
+      - "${ANGULAR_DIR}/coverage/"
+    expire_in: 7 days
+
+# =============================================================================
+# SECURITY STAGE
+# =============================================================================
+
+# Trivy container vulnerability scan on the built JAR image layer
+security:trivy-fs:
+  stage: security
+  image:
+    name: aquasec/trivy:latest
+    entrypoint: [""]
+  needs:
+    - job: build:spring
+      artifacts: true
+  script:
+    - trivy fs
+        --exit-code 1
+        --severity HIGH,CRITICAL
+        --ignore-unfixed
+        --format table
+        "${SPRING_DIR}/target/logistics-api.jar"
+  allow_failure: false
+  artifacts:
+    name: "trivy-fs-report-${CI_COMMIT_SHORT_SHA}"
+    when: always
+    paths:
+      - trivy-fs-report.txt
+    expire_in: 7 days
+
+# GitLab SAST — static application security testing
+include:
+  - template: Security/SAST.gitlab-ci.yml
+  - template: Security/Dependency-Scanning.gitlab-ci.yml
+  - template: Security/Secret-Detection.gitlab-ci.yml
+
+sast:
+  stage: security
+  variables:
+    SAST_JAVA_VERSION: "17"
+
+dependency_scanning:
+  stage: security
+
+secret_detection:
+  stage: security
+
+# =============================================================================
+# PACKAGE STAGE
+# =============================================================================
+
+# Build multi-stage Docker image and push to ECR
+package:docker:
+  stage: package
+  image: docker:24.0-dind
+  services:
+    - name: docker:24.0-dind
+      alias: docker
+  needs:
+    - job: build:spring
+      artifacts: true
+    - job: test:java
+    - job: test:angular
+    - job: security:trivy-fs
+  <<: *aws-login
+  script:
+    - |
+      # Determine image tag: use git tag for releases, short SHA otherwise
+      if [ -n "${CI_COMMIT_TAG}" ]; then
+        TAG="${CI_COMMIT_TAG}"
+      else
+        TAG="${CI_COMMIT_SHORT_SHA}"
+      fi
+      BRANCH_TAG=$(echo "${CI_COMMIT_REF_NAME}" | tr '/' '-' | tr '[:upper:]' '[:lower:]')
+      IMAGE_FULL="${IMAGE_NAME}:${TAG}"
+      IMAGE_BRANCH="${IMAGE_NAME}:${BRANCH_TAG}"
+      IMAGE_LATEST="${IMAGE_NAME}:latest"
+
+      echo "Building Docker image: ${IMAGE_FULL}"
+
+      docker build \
+        --build-arg BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+        --build-arg GIT_COMMIT="${CI_COMMIT_SHA}" \
+        --build-arg GIT_BRANCH="${CI_COMMIT_REF_NAME}" \
+        --build-arg VERSION="${TAG}" \
+        --label "org.opencontainers.image.created=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+        --label "org.opencontainers.image.revision=${CI_COMMIT_SHA}" \
+        --label "org.opencontainers.image.source=${CI_PROJECT_URL}" \
+        --label "org.opencontainers.image.version=${TAG}" \
+        --cache-from "${IMAGE_NAME}:buildcache" \
+        --tag "${IMAGE_FULL}" \
+        --tag "${IMAGE_BRANCH}" \
+        --file docker/Dockerfile \
+        .
+
+      # Scan the final image before push
+      docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+        aquasec/trivy:latest image \
+        --exit-code 1 \
+        --severity CRITICAL \
+        --ignore-unfixed \
+        "${IMAGE_FULL}"
+
+      # Push all tags
+      docker push "${IMAGE_FULL}"
+      docker push "${IMAGE_BRANCH}"
+
+      # Tag as latest only from main branch or release tag
+      if [ "${CI_COMMIT_REF_NAME}" = "main" ] || [ -n "${CI_COMMIT_TAG}" ]; then
+        docker push "${IMAGE_LATEST}"
+      fi
+
+      # Update build cache layer
+      docker tag "${IMAGE_FULL}" "${IMAGE_NAME}:buildcache"
+      docker push "${IMAGE_NAME}:buildcache" || true
+
+      echo "IMAGE_TAG=${TAG}" >> build.env
+      echo "IMAGE_FULL=${IMAGE_FULL}" >> build.env
+  artifacts:
+    reports:
+      dotenv: build.env
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH =~ /^release\//'
+    - if: '$CI_COMMIT_TAG'
+    - if: '$CI_COMMIT_BRANCH =~ /^feature\//'
+      when: manual
+      allow_failure: true
+
+# =============================================================================
+# DEPLOY — DEVELOPMENT
+# =============================================================================
+
+deploy:dev:
+  stage: deploy-dev
+  <<: *terraform-init
+  needs:
+    - job: package:docker
+      artifacts: true
+  variables:
+    TF_ENV: "dev"
+    TF_ENV_DIR: "terraform/environments/dev"
+  script:
+    - terraform plan
+        -var="image_tag=${IMAGE_TAG}"
+        -var="environment=dev"
+        -out=tfplan
+        -no-color
+    - terraform apply -auto-approve -no-color tfplan
+    - |
+      # Force a new ECS task deployment so the cluster picks up the new image
+      CLUSTER_NAME=$(terraform output -raw ecs_cluster_name)
+      SERVICE_NAME=$(terraform output -raw ecs_service_name)
+      aws ecs update-service \
+        --cluster "${CLUSTER_NAME}" \
+        --service "${SERVICE_NAME}" \
+        --force-new-deployment \
+        --region "${AWS_DEFAULT_REGION}" \
+        --no-cli-pager
+      echo "Waiting for ECS service to stabilise..."
+      aws ecs wait services-stable \
+        --cluster "${CLUSTER_NAME}" \
+        --services "${SERVICE_NAME}" \
+        --region "${AWS_DEFAULT_REGION}"
+    - |
+      ALB_DNS=$(terraform output -raw alb_dns_name)
+      echo "Dev deployment complete. Application URL: http://${ALB_DNS}"
+  environment:
+    name: development
+    url: http://${ALB_DNS_DEV}
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH =~ /^release\//'
+
+# =============================================================================
+# DEPLOY — STAGING
+# =============================================================================
+
+deploy:staging:
+  stage: deploy-staging
+  <<: *terraform-init
+  needs:
+    - job: package:docker
+      artifacts: true
+    - job: deploy:dev
+  variables:
+    TF_ENV: "staging"
+    TF_ENV_DIR: "terraform/environments/staging"
+  script:
+    - terraform plan
+        -var="image_tag=${IMAGE_TAG}"
+        -var="environment=staging"
+        -out=tfplan
+        -no-color
+    - terraform apply -auto-approve -no-color tfplan
+    - |
+      CLUSTER_NAME=$(terraform output -raw ecs_cluster_name)
+      SERVICE_NAME=$(terraform output -raw ecs_service_name)
+      aws ecs update-service \
+        --cluster "${CLUSTER_NAME}" \
+        --service "${SERVICE_NAME}" \
+        --force-new-deployment \
+        --region "${AWS_DEFAULT_REGION}" \
+        --no-cli-pager
+      aws ecs wait services-stable \
+        --cluster "${CLUSTER_NAME}" \
+        --services "${SERVICE_NAME}" \
+        --region "${AWS_DEFAULT_REGION}"
+    - |
+      ALB_DNS=$(terraform output -raw alb_dns_name)
+      echo "Staging deployment complete. Application URL: http://${ALB_DNS}"
+  environment:
+    name: staging
+    url: http://${ALB_DNS_STAGING}
+  when: manual
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH =~ /^release\//'
+
+# =============================================================================
+# DEPLOY — PRODUCTION
+# =============================================================================
+
+deploy:prod:
+  stage: deploy-prod
+  <<: *terraform-init
+  needs:
+    - job: package:docker
+      artifacts: true
+    - job: deploy:staging
+  variables:
+    TF_ENV: "prod"
+    TF_ENV_DIR: "terraform/environments/prod"
+  script:
+    - terraform plan
+        -var="image_tag=${IMAGE_TAG}"
+        -var="environment=prod"
+        -out=tfplan
+        -no-color
+    # Require explicit plan review before apply — diff printed to console
+    - terraform show -no-color tfplan
+    - terraform apply -auto-approve -no-color tfplan
+    - |
+      CLUSTER_NAME=$(terraform output -raw ecs_cluster_name)
+      SERVICE_NAME=$(terraform output -raw ecs_service_name)
+      # Blue/green-style rolling update: wait for full stabilisation
+      aws ecs update-service \
+        --cluster "${CLUSTER_NAME}" \
+        --service "${SERVICE_NAME}" \
+        --force-new-deployment \
+        --region "${AWS_DEFAULT_REGION}" \
+        --no-cli-pager
+      echo "Waiting for production ECS service to stabilise (up to 10 min)..."
+      aws ecs wait services-stable \
+        --cluster "${CLUSTER_NAME}" \
+        --services "${SERVICE_NAME}" \
+        --region "${AWS_DEFAULT_REGION}"
+    - |
+      ALB_DNS=$(terraform output -raw alb_dns_name)
+      echo "Production deployment complete. Application URL: https://${ALB_DNS}"
+  environment:
+    name: production
+    url: https://${ALB_DNS_PROD}
+  when: manual
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_TAG'
