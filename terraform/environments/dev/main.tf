@@ -16,10 +16,10 @@ terraform {
   backend "s3" {
     # Configured via -backend-config flags in CI (see .gitlab-ci.yml)
     # bucket         = set via CI variable TF_STATE_BUCKET
-    # key            = "dev/terraform.tfstate"
-    # region         = set via CI variable AWS_DEFAULT_REGION
+    key            = "dev/terraform.tfstate"
+    region         = "eu-west-1"
     # dynamodb_table = set via CI variable TF_STATE_LOCK_TABLE
-    # encrypt        = true
+    encrypt        = true
   }
 }
 

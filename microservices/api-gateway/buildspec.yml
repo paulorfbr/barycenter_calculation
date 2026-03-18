@@ -1,0 +1,280 @@
+# =============================================================================
+# AWS CodeBuild BuildSpec for API Gateway Service
+#
+# This buildspec handles:
+#   - Multi-stage Docker build with layer caching
+#   - Security scanning with Trivy
+#   - Unit and integration tests
+#   - Docker image push to ECR
+#   - ECS deployment artifact generation
+# =============================================================================
+
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto17
+      docker: 20
+    commands:
+      - echo "Installing dependencies..."
+      - apt-get update -y
+      - apt-get install -y wget curl unzip jq
+
+      # Install Maven (latest version)
+      - wget https://archive.apache.org/dist/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz
+      - tar -xzf apache-maven-3.9.6-bin.tar.gz
+      - export PATH=/apache-maven-3.9.6/bin:$PATH
+      - mvn --version
+
+      # Install Trivy for security scanning
+      - wget -qO- https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+
+      # Install hadolint for Dockerfile linting
+      - wget -qO hadolint https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64
+      - chmod +x hadolint
+      - mv hadolint /usr/local/bin/
+
+      # Install AWS CLI v2
+      - curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+      - unzip awscliv2.zip
+      - ./aws/install
+
+  pre_build:
+    commands:
+      - echo "Starting pre-build phase..."
+      - echo "Build started on $(date)"
+      - echo "Current working directory is $(pwd)"
+      - cd microservices/api-gateway
+
+      # Lint Dockerfile
+      - echo "Linting Dockerfile..."
+      - hadolint Dockerfile
+
+      # Set environment variables
+      - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME
+      - IMAGE_TAG=${IMAGE_TAG:-latest}
+      - COMMIT_HASH=${CODEBUILD_RESOLVED_SOURCE_VERSION}
+      - SHORT_COMMIT=${COMMIT_HASH:0:7}
+      - BUILD_NUMBER=${CODEBUILD_BUILD_NUMBER}
+      - BUILD_ID=${CODEBUILD_BUILD_ID}
+
+      # Log in to Amazon ECR
+      - echo "Logging into Amazon ECR..."
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+
+      # Check if repository exists, create if not
+      - aws ecr describe-repositories --repository-names ${SERVICE_NAME} --region $AWS_DEFAULT_REGION || aws ecr create-repository --repository-name ${SERVICE_NAME} --region $AWS_DEFAULT_REGION
+
+      # Set up Maven settings for Docker layer caching
+      - mkdir -p ~/.m2
+      - cp ../../docker/maven-settings.xml ~/.m2/settings.xml || echo "Maven settings not found, using defaults"
+
+  build:
+    commands:
+      - echo "Starting build phase..."
+
+      # Run tests first
+      - echo "Running unit tests..."
+      - mvn clean test -B -Dspring.profiles.active=test
+
+      # Generate test reports
+      - mvn surefire-report:report -B
+
+      # Build the application
+      - echo "Building Spring Boot application..."
+      - mvn clean package -DskipTests -B -Dspring.profiles.active=production
+
+      # Build Docker image with build args
+      - echo "Building Docker image..."
+      - |
+        docker build \
+          --build-arg BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
+          --build-arg GIT_COMMIT=$COMMIT_HASH \
+          --build-arg GIT_BRANCH=${CODEBUILD_SOURCE_VERSION} \
+          --build-arg VERSION=$IMAGE_TAG \
+          --cache-from $REPOSITORY_URI:cache \
+          -t $REPOSITORY_URI:$IMAGE_TAG \
+          -t $REPOSITORY_URI:$SHORT_COMMIT \
+          -t $REPOSITORY_URI:build-$BUILD_NUMBER \
+          .
+
+      # Security scanning with Trivy
+      - echo "Running security scan with Trivy..."
+      - trivy image --exit-code 0 --severity HIGH,CRITICAL --format json --output trivy-report.json $REPOSITORY_URI:$IMAGE_TAG
+      - trivy image --exit-code 1 --severity CRITICAL $REPOSITORY_URI:$IMAGE_TAG
+
+      # Test the Docker image
+      - echo "Testing Docker image..."
+      - |
+        docker run --rm -d \
+          --name test-container \
+          -p 8080:8080 \
+          -e SPRING_PROFILES_ACTIVE=test \
+          $REPOSITORY_URI:$IMAGE_TAG
+
+      # Wait for application to start
+      - sleep 30
+
+      # Health check
+      - |
+        for i in {1..10}; do
+          if curl -f http://localhost:8080/actuator/health; then
+            echo "Health check passed"
+            break
+          else
+            echo "Health check attempt $i failed"
+            sleep 10
+          fi
+        done
+
+      # Stop test container
+      - docker stop test-container || true
+
+  post_build:
+    commands:
+      - echo "Starting post-build phase..."
+
+      # Push Docker image to ECR
+      - echo "Pushing Docker image to ECR..."
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - docker push $REPOSITORY_URI:$SHORT_COMMIT
+      - docker push $REPOSITORY_URI:build-$BUILD_NUMBER
+
+      # Create cache image
+      - docker tag $REPOSITORY_URI:$IMAGE_TAG $REPOSITORY_URI:cache
+      - docker push $REPOSITORY_URI:cache
+
+      # Generate image definitions for ECS deployment
+      - echo "Generating imagedefinitions.json..."
+      - |
+        cat > imagedefinitions.json << EOF
+        [
+          {
+            "name": "${SERVICE_NAME}",
+            "imageUri": "${REPOSITORY_URI}:${IMAGE_TAG}"
+          }
+        ]
+        EOF
+
+      # Generate task definition for CodeDeploy
+      - echo "Generating task definition..."
+      - |
+        cat > taskdef.json << EOF
+        {
+          "family": "logistics-${ENVIRONMENT}-${SERVICE_NAME}",
+          "networkMode": "awsvpc",
+          "requiresCompatibilities": ["FARGATE"],
+          "cpu": "512",
+          "memory": "1024",
+          "executionRoleArn": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/logistics-${ENVIRONMENT}-ecs-task-execution-role",
+          "taskRoleArn": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/logistics-${ENVIRONMENT}-ecs-task-role",
+          "containerDefinitions": [
+            {
+              "name": "${SERVICE_NAME}",
+              "image": "<IMAGE1_NAME>",
+              "essential": true,
+              "portMappings": [
+                {
+                  "containerPort": 8080,
+                  "protocol": "tcp"
+                }
+              ],
+              "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                  "awslogs-group": "/ecs/logistics-${ENVIRONMENT}/${SERVICE_NAME}",
+                  "awslogs-region": "${AWS_DEFAULT_REGION}",
+                  "awslogs-stream-prefix": "ecs"
+                }
+              },
+              "environment": [
+                {
+                  "name": "SPRING_PROFILES_ACTIVE",
+                  "value": "${ENVIRONMENT}"
+                },
+                {
+                  "name": "AWS_REGION",
+                  "value": "${AWS_DEFAULT_REGION}"
+                }
+              ],
+              "healthCheck": {
+                "command": ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"],
+                "interval": 30,
+                "timeout": 10,
+                "retries": 3,
+                "startPeriod": 60
+              }
+            }
+          ]
+        }
+        EOF
+
+      # Generate AppSpec for CodeDeploy
+      - echo "Generating appspec.yaml..."
+      - |
+        cat > appspec.yaml << EOF
+        version: 0.0
+        Resources:
+          - TargetService:
+              Type: AWS::ECS::Service
+              Properties:
+                TaskDefinition: <TASK_DEFINITION>
+                LoadBalancerInfo:
+                  ContainerName: "${SERVICE_NAME}"
+                  ContainerPort: 8080
+                PlatformVersion: "LATEST"
+        Hooks:
+          - BeforeInstall: "BeforeInstall"
+          - AfterInstall: "AfterInstall"
+          - BeforeAllowTraffic: "BeforeAllowTraffic"
+          - AfterAllowTraffic: "AfterAllowTraffic"
+        EOF
+
+      # Generate build metadata
+      - echo "Generating build metadata..."
+      - |
+        cat > build-metadata.json << EOF
+        {
+          "buildId": "${BUILD_ID}",
+          "buildNumber": "${BUILD_NUMBER}",
+          "commitHash": "${COMMIT_HASH}",
+          "shortCommit": "${SHORT_COMMIT}",
+          "branch": "${CODEBUILD_SOURCE_VERSION}",
+          "buildTime": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+          "imageUri": "${REPOSITORY_URI}:${IMAGE_TAG}",
+          "serviceName": "${SERVICE_NAME}",
+          "environment": "${ENVIRONMENT}"
+        }
+        EOF
+
+      - echo "Build completed on $(date)"
+
+artifacts:
+  files:
+    - imagedefinitions.json
+    - taskdef.json
+    - appspec.yaml
+    - build-metadata.json
+    - target/surefire-reports/**/*
+    - trivy-report.json
+  base-directory: microservices/api-gateway
+  name: ${SERVICE_NAME}-artifacts-$(date +%Y-%m-%d-%H-%M-%S)
+
+reports:
+  surefire-reports:
+    files:
+      - "**/*"
+    base-directory: microservices/api-gateway/target/surefire-reports
+    file-format: JUNITXML
+
+  trivy-reports:
+    files:
+      - trivy-report.json
+    base-directory: microservices/api-gateway
+    file-format: OTHER
+
+cache:
+  paths:
+    - ~/.m2/repository/**/*
+    - ~/.docker/**/*

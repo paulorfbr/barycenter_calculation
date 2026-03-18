@@ -1,0 +1,363 @@
+# =============================================================================
+# Docker Compose — Development Environment Override
+#
+# This file extends docker-compose.microservices.yml with development-friendly
+# configurations including:
+#   - Debug ports exposed
+#   - Hot reload capabilities
+#   - Development databases with UI tools
+#   - Relaxed security for easier debugging
+#   - Additional development services
+#
+# Usage:
+#   docker compose -f docker-compose.microservices.yml \
+#                  -f docker-compose.development.yml up -d
+# =============================================================================
+
+services:
+
+  # ===========================================================================
+  # INFRASTRUCTURE SERVICES — Development Enhancements
+  # ===========================================================================
+
+  # PostgreSQL with pgAdmin for database management
+  postgres:
+    ports:
+      - "5432:5432"  # Expose for local tools
+    environment:
+      POSTGRES_PASSWORD: dev_password
+      POSTGRES_USER: logistics
+      POSTGRES_DB: logistics_dev
+    volumes:
+      - postgres-dev-data:/var/lib/postgresql/data
+      - ./postgres/init-dev-databases.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./postgres/sample-data:/docker-entrypoint-initdb.d/sample-data:ro
+
+  # pgAdmin for PostgreSQL management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: logistics-pgadmin
+    ports:
+      - "8888:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@logistics.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+      - ./pgadmin/servers.json:/pgadmin4/servers.json:ro
+    depends_on:
+      - postgres
+    networks:
+      - logistics-net
+    labels:
+      com.logistics.service: "pgadmin"
+      com.logistics.environment: "development"
+
+  # Redis with RedisInsight for cache management
+  redis:
+    ports:
+      - "6379:6379"  # Expose for local tools
+    command: >
+      redis-server
+        --maxmemory 128mb
+        --maxmemory-policy allkeys-lru
+        --save 60 100
+        --requirepass ""
+        --protected-mode no
+
+  redisinsight:
+    image: redislabs/redisinsight:latest
+    container_name: logistics-redisinsight
+    ports:
+      - "8001:8001"
+    volumes:
+      - redisinsight-data:/db
+    depends_on:
+      - redis
+    networks:
+      - logistics-net
+    labels:
+      com.logistics.service: "redisinsight"
+      com.logistics.environment: "development"
+
+  # Kafka with Kafka UI for message monitoring
+  kafka:
+    ports:
+      - "9092:9092"    # External access
+      - "9093:9093"    # Internal access
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9093,PLAINTEXT_HOST://localhost:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_LOG_RETENTION_HOURS: 24  # Shorter retention for dev
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: logistics-kafka-ui
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: logistics-dev
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9093
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    depends_on:
+      kafka:
+        condition: service_healthy
+    networks:
+      - logistics-net
+    labels:
+      com.logistics.service: "kafka-ui"
+      com.logistics.environment: "development"
+
+  # ===========================================================================
+  # APPLICATION SERVICES — Development Configuration
+  # ===========================================================================
+
+  api-gateway:
+    ports:
+      - "8080:8080"   # Application port
+      - "8090:8090"   # Management port
+      - "5005:5005"   # Debug port
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DEVTOOLS_RESTART_ENABLED: "true"
+      SPRING_DEVTOOLS_LIVERELOAD_ENABLED: "true"
+      JAVA_OPTS: >-
+        -XX:+UseContainerSupport
+        -XX:MaxRAMPercentage=50.0
+        -Djava.security.egd=file:/dev/./urandom
+        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+        -Dspring.jpa.show-sql=true
+        -Dlogging.level.com.logistics=DEBUG
+        -Dlogging.level.org.springframework.security=TRACE
+    volumes:
+      - ./logs:/app/logs
+      - ./config/dev:/app/config:ro
+    labels:
+      com.logistics.service: "api-gateway"
+      com.logistics.debug: "enabled"
+
+  company-service:
+    ports:
+      - "8081:8081"   # Application port
+      - "8091:8091"   # Management port
+      - "5006:5006"   # Debug port
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DEVTOOLS_RESTART_ENABLED: "true"
+      JAVA_OPTS: >-
+        -XX:+UseContainerSupport
+        -XX:MaxRAMPercentage=50.0
+        -Djava.security.egd=file:/dev/./urandom
+        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5006
+        -Dspring.jpa.show-sql=true
+        -Dlogging.level.com.logistics=DEBUG
+        -Dlogging.level.org.springframework.data.jpa=DEBUG
+    volumes:
+      - ./logs:/app/logs
+      - ./config/dev:/app/config:ro
+    labels:
+      com.logistics.service: "company-service"
+      com.logistics.debug: "enabled"
+
+  site-service:
+    ports:
+      - "8082:8082"   # Application port
+      - "8092:8092"   # Management port
+      - "5007:5007"   # Debug port
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DEVTOOLS_RESTART_ENABLED: "true"
+      JAVA_OPTS: >-
+        -XX:+UseContainerSupport
+        -XX:MaxRAMPercentage=50.0
+        -Djava.security.egd=file:/dev/./urandom
+        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5007
+        -Dspring.jpa.show-sql=true
+        -Dlogging.level.com.logistics=DEBUG
+    volumes:
+      - ./logs:/app/logs
+      - ./config/dev:/app/config:ro
+    labels:
+      com.logistics.service: "site-service"
+      com.logistics.debug: "enabled"
+
+  calculation-service:
+    ports:
+      - "8083:8083"   # Application port
+      - "8093:8093"   # Management port
+      - "5008:5008"   # Debug port
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DEVTOOLS_RESTART_ENABLED: "true"
+      JAVA_OPTS: >-
+        -XX:+UseContainerSupport
+        -XX:MaxRAMPercentage=50.0
+        -Djava.security.egd=file:/dev/./urandom
+        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5008
+        -Dlogging.level.com.logistics=DEBUG
+        -Dlogging.level.com.logistics.calculation=TRACE
+    volumes:
+      - ./logs:/app/logs
+      - ./config/dev:/app/config:ro
+    labels:
+      com.logistics.service: "calculation-service"
+      com.logistics.debug: "enabled"
+
+  dashboard-service:
+    ports:
+      - "8084:8084"   # Application port
+      - "8094:8094"   # Management port
+      - "5009:5009"   # Debug port
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DEVTOOLS_RESTART_ENABLED: "true"
+      JAVA_OPTS: >-
+        -XX:+UseContainerSupport
+        -XX:MaxRAMPercentage=50.0
+        -Djava.security.egd=file:/dev/./urandom
+        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5009
+        -Dlogging.level.com.logistics=DEBUG
+    volumes:
+      - ./logs:/app/logs
+      - ./config/dev:/app/config:ro
+    labels:
+      com.logistics.service: "dashboard-service"
+      com.logistics.debug: "enabled"
+
+  # ===========================================================================
+  # DEVELOPMENT TOOLS AND SERVICES
+  # ===========================================================================
+
+  # Jaeger for distributed tracing (alternative to Zipkin)
+  jaeger:
+    image: jaegertracing/all-in-one:1.51
+    container_name: logistics-jaeger
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "14268:14268"  # HTTP collector
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+      COLLECTOR_ZIPKIN_HOST_PORT: ":9411"
+    networks:
+      - logistics-net
+    labels:
+      com.logistics.service: "jaeger"
+      com.logistics.environment: "development"
+
+  # Mailhog for email testing
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: logistics-mailhog
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Web UI
+    networks:
+      - logistics-net
+    labels:
+      com.logistics.service: "mailhog"
+      com.logistics.environment: "development"
+
+  # Nginx for local SSL termination and proxy
+  nginx-dev:
+    image: nginx:1.25-alpine
+    container_name: logistics-nginx-dev
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.dev.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl/dev:/etc/nginx/ssl:ro
+      - ./nginx/html:/usr/share/nginx/html:ro
+    depends_on:
+      - api-gateway
+    networks:
+      - logistics-net
+    labels:
+      com.logistics.service: "nginx-dev"
+      com.logistics.environment: "development"
+
+  # ===========================================================================
+  # DEVELOPMENT DATABASE TOOLS
+  # ===========================================================================
+
+  # Adminer for multi-database management
+  adminer:
+    image: adminer:latest
+    container_name: logistics-adminer
+    ports:
+      - "8889:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    depends_on:
+      - postgres
+    networks:
+      - logistics-net
+    labels:
+      com.logistics.service: "adminer"
+      com.logistics.environment: "development"
+
+  # MongoDB for development experiments (optional)
+  mongodb:
+    image: mongo:7.0
+    container_name: logistics-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    volumes:
+      - mongodb-data:/data/db
+    networks:
+      - logistics-net
+    profiles:
+      - mongodb  # Only start when: docker compose --profile mongodb up
+
+  # Mongo Express for MongoDB management
+  mongo-express:
+    image: mongo-express:latest
+    container_name: logistics-mongo-express
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: example
+      ME_CONFIG_MONGODB_URL: mongodb://root:example@mongodb:27017/
+    depends_on:
+      - mongodb
+    networks:
+      - logistics-net
+    profiles:
+      - mongodb
+
+# =============================================================================
+# DEVELOPMENT-SPECIFIC VOLUMES
+# =============================================================================
+
+volumes:
+  postgres-dev-data:
+    driver: local
+  pgadmin-data:
+    driver: local
+  redisinsight-data:
+    driver: local
+  mongodb-data:
+    driver: local
+
+# =============================================================================
+# NETWORK CONFIGURATION
+# =============================================================================
+
+networks:
+  logistics-net:
+    driver: bridge
+    name: logistics-development

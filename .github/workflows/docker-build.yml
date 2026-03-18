@@ -1,0 +1,368 @@
+name: Docker Build and Deploy
+
+on:
+  push:
+    branches: [ main, develop ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY_PREFIX: logistics
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Security and Quality Checks
+  # ---------------------------------------------------------------------------
+  security:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+    - name: Docker security scan with Hadolint
+      uses: hadolint/hadolint-action@v3.1.0
+      with:
+        dockerfile: Dockerfile.desktop
+        format: sarif
+        output-file: hadolint-results.sarif
+        no-fail: true
+
+  # ---------------------------------------------------------------------------
+  # Build and Test
+  # ---------------------------------------------------------------------------
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_USER: test_user
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7.2-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven
+
+    - name: Run unit tests
+      run: |
+        cd microservices
+        mvn clean test -B -q
+
+    - name: Run integration tests
+      run: |
+        cd microservices
+        mvn verify -B -q -Dspring.profiles.active=integration
+      env:
+        POSTGRES_URL: jdbc:postgresql://localhost:5432/test_db
+        REDIS_HOST: localhost
+        REDIS_PORT: 6379
+
+    - name: Generate test report
+      uses: dorny/test-reporter@v1
+      if: success() || failure()
+      with:
+        name: Maven Tests
+        path: 'microservices/**/target/surefire-reports/*.xml'
+        reporter: java-junit
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        directory: ./microservices/target/site/jacoco/
+
+  # ---------------------------------------------------------------------------
+  # Build Docker Images
+  # ---------------------------------------------------------------------------
+  build:
+    runs-on: ubuntu-latest
+    needs: [security, test]
+    strategy:
+      matrix:
+        service: [api-gateway, company-service, site-service, calculation-service, dashboard-service]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Login to Amazon ECR
+      if: github.event_name != 'pull_request'
+      uses: aws-actions/amazon-ecr-login@v2
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: ${{ env.AWS_REGION }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.ECR_REPOSITORY_PREFIX }}/${{ matrix.service }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=sha,prefix=sha-,format=short
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./microservices/${{ matrix.service }}
+        file: ./microservices/${{ matrix.service }}/Dockerfile
+        push: ${{ github.event_name != 'pull_request' }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        platforms: linux/amd64,linux/arm64
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          BUILD_DATE=${{ github.run_date }}
+          GIT_COMMIT=${{ github.sha }}
+          GIT_BRANCH=${{ github.ref_name }}
+          VERSION=${{ steps.meta.outputs.version }}
+
+    - name: Run Trivy vulnerability scanner on image
+      if: github.event_name != 'pull_request'
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ env.ECR_REPOSITORY_PREFIX }}/${{ matrix.service }}:${{ steps.meta.outputs.version }}
+        format: 'sarif'
+        output: 'trivy-image-results-${{ matrix.service }}.sarif'
+
+    - name: Upload image scan results
+      if: github.event_name != 'pull_request'
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: 'trivy-image-results-${{ matrix.service }}.sarif'
+
+  # ---------------------------------------------------------------------------
+  # Build Desktop Application
+  # ---------------------------------------------------------------------------
+  build-desktop:
+    runs-on: ubuntu-latest
+    needs: [security, test]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Login to Amazon ECR
+      if: github.event_name != 'pull_request'
+      uses: aws-actions/amazon-ecr-login@v2
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: ${{ env.AWS_REGION }}
+
+    - name: Extract metadata for desktop app
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.ECR_REPOSITORY_PREFIX }}/desktop-app
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=sha,prefix=sha-,format=short
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: Build and push desktop app
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile.desktop
+        target: gui-runtime
+        push: ${{ github.event_name != 'pull_request' }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        platforms: linux/amd64
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          BUILD_DATE=${{ github.run_date }}
+          GIT_COMMIT=${{ github.sha }}
+          GIT_BRANCH=${{ github.ref_name }}
+          VERSION=${{ steps.meta.outputs.version }}
+
+  # ---------------------------------------------------------------------------
+  # Deploy to Development
+  # ---------------------------------------------------------------------------
+  deploy-dev:
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    needs: [build, build-desktop]
+    environment: development
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.6.0
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Terraform Init
+      run: terraform init
+      working-directory: terraform/environments/dev
+
+    - name: Terraform Plan
+      run: terraform plan -var="image_tag=sha-${GITHUB_SHA::7}"
+      working-directory: terraform/environments/dev
+
+    - name: Terraform Apply
+      run: terraform apply -auto-approve -var="image_tag=sha-${GITHUB_SHA::7}"
+      working-directory: terraform/environments/dev
+
+  # ---------------------------------------------------------------------------
+  # Deploy to Production
+  # ---------------------------------------------------------------------------
+  deploy-prod:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    needs: [build, build-desktop]
+    environment: production
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.6.0
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.PROD_AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Extract version from tag
+      id: version
+      run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+    - name: Terraform Init
+      run: terraform init
+      working-directory: terraform/environments/prod
+
+    - name: Terraform Plan
+      run: terraform plan -var="image_tag=${{ steps.version.outputs.version }}"
+      working-directory: terraform/environments/prod
+
+    - name: Terraform Apply
+      run: terraform apply -auto-approve -var="image_tag=${{ steps.version.outputs.version }}"
+      working-directory: terraform/environments/prod
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v${{ steps.version.outputs.version }}
+        name: Release v${{ steps.version.outputs.version }}
+        body: |
+          ## What's Changed
+
+          Automated release of logistics platform version ${{ steps.version.outputs.version }}
+
+          ### Docker Images
+          - `logistics/api-gateway:${{ steps.version.outputs.version }}`
+          - `logistics/company-service:${{ steps.version.outputs.version }}`
+          - `logistics/site-service:${{ steps.version.outputs.version }}`
+          - `logistics/calculation-service:${{ steps.version.outputs.version }}`
+          - `logistics/dashboard-service:${{ steps.version.outputs.version }}`
+          - `logistics/desktop-app:${{ steps.version.outputs.version }}`
+
+          ### Deployment
+          Deployed to production environment on AWS ECS.
+        draft: false
+        prerelease: false
+
+  # ---------------------------------------------------------------------------
+  # Notify Deployment
+  # ---------------------------------------------------------------------------
+  notify:
+    if: always()
+    runs-on: ubuntu-latest
+    needs: [deploy-dev, deploy-prod]
+
+    steps:
+    - name: Notify Slack on success
+      if: ${{ needs.deploy-dev.result == 'success' || needs.deploy-prod.result == 'success' }}
+      uses: rtCamp/action-slack-notify@v2
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        SLACK_MESSAGE: |
+          ✅ Logistics Platform deployment successful!
+
+          Environment: ${{ github.ref == 'refs/heads/develop' && 'Development' || 'Production' }}
+          Version: ${{ github.ref_name }}
+          Commit: ${{ github.sha }}
+
+    - name: Notify Slack on failure
+      if: ${{ needs.deploy-dev.result == 'failure' || needs.deploy-prod.result == 'failure' }}
+      uses: rtCamp/action-slack-notify@v2
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        SLACK_MESSAGE: |
+          ❌ Logistics Platform deployment failed!
+
+          Environment: ${{ github.ref == 'refs/heads/develop' && 'Development' || 'Production' }}
+          Version: ${{ github.ref_name }}
+          Commit: ${{ github.sha }}
+
+          Please check the workflow logs for details.

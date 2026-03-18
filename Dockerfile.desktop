@@ -1,0 +1,98 @@
+# =============================================================================
+# JavaFX Desktop Application Dockerfile
+# Supports both headless and X11 GUI modes
+# =============================================================================
+
+FROM eclipse-temurin:17-jdk-alpine AS build
+ARG BUILD_DATE
+ARG GIT_COMMIT
+ARG GIT_BRANCH
+ARG VERSION=dev
+
+WORKDIR /workspace
+
+# Copy Maven configuration and dependencies first for caching
+COPY pom.xml* ./
+COPY .mvn .mvn
+COPY mvnw mvnw
+RUN chmod +x mvnw
+
+# Cache dependencies
+RUN ./mvnw dependency:go-offline -B -q || true
+
+# Copy source code and build
+COPY src src
+COPY static static
+RUN ./mvnw clean package -DskipTests -B -q
+
+# Extract JAR layers for optimal Docker layer caching
+RUN java -Djarmode=layertools -jar target/*.jar extract --destination extracted
+
+# =============================================================================
+# GUI Runtime Stage (with X11 support)
+# =============================================================================
+FROM eclipse-temurin:17-jre-alpine AS gui-runtime
+
+# Install GUI dependencies and X11 forwarding
+RUN apk add --no-cache \
+    fontconfig \
+    ttf-dejavu \
+    xorg-server \
+    xvfb \
+    x11vnc \
+    fluxbox \
+    xterm \
+    && rm -rf /var/cache/apk/*
+
+# Create non-root user for security
+RUN addgroup -S logistics && adduser -S logistics -G logistics
+WORKDIR /app
+
+# Copy JAR layers
+COPY --from=build --chown=logistics:logistics /workspace/extracted/dependencies/ ./
+COPY --from=build --chown=logistics:logistics /workspace/extracted/spring-boot-loader/ ./
+COPY --from=build --chown=logistics:logistics /workspace/extracted/snapshot-dependencies/ ./
+COPY --from=build --chown=logistics:logistics /workspace/extracted/application/ ./
+
+# Copy startup scripts
+COPY docker/scripts/start-gui.sh /start-gui.sh
+COPY docker/scripts/start-vnc.sh /start-vnc.sh
+RUN chmod +x /start-gui.sh /start-vnc.sh
+
+USER logistics
+
+# Expose VNC port for remote GUI access
+EXPOSE 5900 8080
+
+# Environment variables
+ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+ENV DISPLAY=:1
+
+# Health check for GUI mode
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD pgrep -f "MainApplication" > /dev/null || exit 1
+
+# Default command starts VNC server with the JavaFX app
+CMD ["/start-vnc.sh"]
+
+# =============================================================================
+# Headless Runtime Stage (for CI/CD and testing)
+# =============================================================================
+FROM eclipse-temurin:17-jre-alpine AS headless-runtime
+
+RUN addgroup -S logistics && adduser -S logistics -G logistics
+WORKDIR /app
+
+COPY --from=build --chown=logistics:logistics /workspace/extracted/dependencies/ ./
+COPY --from=build --chown=logistics:logistics /workspace/extracted/spring-boot-loader/ ./
+COPY --from=build --chown=logistics:logistics /workspace/extracted/snapshot-dependencies/ ./
+COPY --from=build --chown=logistics:logistics /workspace/extracted/application/ ./
+
+USER logistics
+
+ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.awt.headless=true"
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD pgrep -f "java" > /dev/null || exit 1
+
+CMD ["java", "-cp", "BOOT-INF/classes:BOOT-INF/lib/*", "com.logistics.app.MainApplication"]
