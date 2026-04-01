@@ -17,6 +17,27 @@ public record CompanyCreatedEvent(
         String  status         // ACTIVE | PENDING | INACTIVE
 ) implements DomainEvent {
 
+    // DomainEvent interface compatibility methods
+    @Override
+    public String getEventId() {
+        return eventId;
+    }
+
+    @Override
+    public String getEventType() {
+        return eventType;
+    }
+
+    @Override
+    public Instant getOccurredAt() {
+        return occurredAt;
+    }
+
+    @Override
+    public String getAggregateId() {
+        return aggregateId;
+    }
+
     public static CompanyCreatedEvent of(String companyId, String name, String type, String status) {
         return new CompanyCreatedEvent(
                 UUID.randomUUID().toString(),

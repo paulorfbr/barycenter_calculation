@@ -67,7 +67,7 @@ public class CompanyEntity {
 
     // --- constructors ---
 
-    protected CompanyEntity() {}
+    public CompanyEntity() {}
 
     // --- accessors (getters and setters for JPA and MapStruct) ---
 

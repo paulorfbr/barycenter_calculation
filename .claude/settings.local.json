@@ -31,7 +31,11 @@
       "Bash(xargs grep:*)",
       "Bash(\"C:\\\\Users\\\\User\\\\IdeaProjects\\\\define-company-logistic-place\\\\env.example\":*)",
       "Skill(update-config)",
-      "mcp__playwright//"
+      "mcp__playwright//",
+      "Bash(find . -name \"*.java\" -exec javac -version)",
+      "Bash(2)",
+      "Bash(grep -l \"FAILURE\" *.txt)",
+      "Bash(grep -i \"failure\\\\|error\" *.txt)"
     ],
     "deny": [
       "Read(./.env)",
@@ -40,6 +44,9 @@
     ]
   },
   "model": "claude-sonnet-4-20250514",
+  "enabledMcpjsonServers": [
+    "playwright"
+  ],
   "hooks": {
     "PostToolUse": [
       {
@@ -65,6 +72,5 @@
   "tests": {
     "require_for_new_modules": true
   },
-  "maxTokens": 4096,
-  "enabledMcpjsonServers": ["playwright"]
+  "maxTokens": 4096
 }

@@ -21,6 +21,27 @@ public record SiteAddedEvent(
         double        weightTons
 ) implements DomainEvent {
 
+    // DomainEvent interface compatibility methods
+    @Override
+    public String getEventId() {
+        return eventId;
+    }
+
+    @Override
+    public String getEventType() {
+        return eventType;
+    }
+
+    @Override
+    public Instant getOccurredAt() {
+        return occurredAt;
+    }
+
+    @Override
+    public String getAggregateId() {
+        return aggregateId;
+    }
+
     public static SiteAddedEvent of(String siteId, String companyId,
                                     String name, GeoCoordinate coord, double tons) {
         return new SiteAddedEvent(
