@@ -1,0 +1,195 @@
+# =============================================================================
+# Company Service — application configuration
+#
+# All secrets (passwords, API keys) are injected via environment variables
+# following the twelve-factor app principle.  Defaults here are for local
+# development only; override in Kubernetes Secrets / ECS task definitions.
+# =============================================================================
+
+spring:
+  application:
+    name: company-service
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL — Company Service owns the 'company_db' schema
+  # ---------------------------------------------------------------------------
+  datasource:
+    url:      ${COMPANY_DB_URL:jdbc:postgresql://localhost:5432/company_db}
+    username: ${COMPANY_DB_USER:company_svc}
+    password: ${COMPANY_DB_PASSWORD:changeme}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      pool-name:            CompanyHikariPool
+      maximum-pool-size:    ${HIKARI_MAX_POOL:10}
+      minimum-idle:         ${HIKARI_MIN_IDLE:2}
+      connection-timeout:   30000
+      idle-timeout:         600000
+      max-lifetime:         1800000
+      # Validate connection on borrow to detect stale connections early
+      connection-test-query: SELECT 1
+
+  jpa:
+    hibernate:
+      ddl-auto: validate          # Flyway owns DDL; Hibernate must not touch it
+    open-in-view: false           # Prevent lazy-load anti-pattern in web threads
+    properties:
+      hibernate:
+        default_schema:       company
+        jdbc:
+          batch_size:         50
+          order_inserts:      true
+          order_updates:      true
+        query:
+          in_clause_parameter_padding: true
+
+  # ---------------------------------------------------------------------------
+  # Flyway — schema migrations versioned under db/migration
+  # ---------------------------------------------------------------------------
+  flyway:
+    schemas:           company
+    locations:         classpath:db/migration
+    baseline-on-migrate: true
+
+  # ---------------------------------------------------------------------------
+  # Redis — caching company list and individual company objects
+  # ---------------------------------------------------------------------------
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle:   8
+          min-idle:   2
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 300000   # 5 minutes TTL for all cache entries
+
+  # ---------------------------------------------------------------------------
+  # Kafka — domain event publishing
+  # ---------------------------------------------------------------------------
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer:   org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all                      # Wait for all replicas to acknowledge
+      retries: 3
+      properties:
+        enable.idempotence: true     # Exactly-once producer semantics
+        spring.json.add.type.headers: true
+    properties:
+      security.protocol: ${KAFKA_SECURITY_PROTOCOL:PLAINTEXT}
+
+# =============================================================================
+# Server
+# =============================================================================
+server:
+  port: ${SERVER_PORT:8081}
+  shutdown: graceful       # Wait for in-flight requests on SIGTERM
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html
+  tomcat:
+    threads:
+      max:  ${TOMCAT_MAX_THREADS:200}
+      min-spare: ${TOMCAT_MIN_THREADS:10}
+    connection-timeout: 5000
+
+# =============================================================================
+# Actuator — health, metrics, info
+# =============================================================================
+management:
+  server:
+    port: 8091             # Actuator on a separate port to protect from public exposure
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,loggers,env
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true      # /actuator/health/liveness and /readiness for Kubernetes
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLE_RATE:1.0}
+  zipkin:
+    tracing:
+      endpoint: ${ZIPKIN_ENDPOINT:http://localhost:9411/api/v2/spans}
+
+# =============================================================================
+# OpenAPI / Swagger UI
+# =============================================================================
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+
+# =============================================================================
+# Resilience4j — circuit breaker, retry, rate limiter defaults
+# =============================================================================
+resilience4j:
+  circuitbreaker:
+    instances:
+      default:
+        sliding-window-size:            10
+        failure-rate-threshold:         50
+        wait-duration-in-open-state:    10s
+        permitted-number-of-calls-in-half-open-state: 3
+  retry:
+    instances:
+      default:
+        max-attempts:         3
+        wait-duration:        500ms
+        retry-exceptions:
+          - org.springframework.dao.TransientDataAccessException
+
+# =============================================================================
+# Logging
+# =============================================================================
+logging:
+  level:
+    root:                              INFO
+    com.logistics.company:             DEBUG
+    org.springframework.kafka:         WARN
+    org.hibernate.SQL:                 ${SQL_LOG_LEVEL:WARN}
+    org.hibernate.type.descriptor.sql: ${SQL_LOG_LEVEL:WARN}
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId:-},%X{spanId:-}] %logger{36} - %msg%n"
+
+# =============================================================================
+# Spring profiles
+# =============================================================================
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+
+  datasource:
+    url: jdbc:tc:postgresql:16-alpine:///company_db_test
+    username: test
+    password: test
+  flyway:
+    schemas: company
+  kafka:
+    bootstrap-servers: ${spring.embedded.kafka.brokers:localhost:9092}
+  data:
+    redis:
+      host: localhost
+      port: 6370  # Testcontainers or embedded Redis override
+
+logging:
+  level:
+    com.logistics.company: DEBUG

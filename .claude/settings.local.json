@@ -35,7 +35,12 @@
       "Bash(find . -name \"*.java\" -exec javac -version)",
       "Bash(2)",
       "Bash(grep -l \"FAILURE\" *.txt)",
-      "Bash(grep -i \"failure\\\\|error\" *.txt)"
+      "Bash(grep -i \"failure\\\\|error\" *.txt)",
+      "Bash(xargs cat:*)",
+      "Bash(find /c/Users/User/IdeaProjects/define-company-logistic-place -type f -name *.md -o -name *.txt -o -name pom.xml -o -name README*)",
+      "Bash(find /c/Users/User/IdeaProjects/define-company-logistic-place -type f \\\\\\(-name *requirement* -o -name *security* -o -name *integration* -o -name *compliance* \\\\\\))",
+      "Bash(find /c/Users/User/IdeaProjects/define-company-logistic-place/src/ui/angular-app/src -type f -name *.ts)",
+      "Bash(grep -E \"\\\\.\\(java|ts|js\\)$\")"
     ],
     "deny": [
       "Read(./.env)",

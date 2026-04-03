@@ -53,6 +53,9 @@ src/ui/angular-app/.angular/cache/
 ### Maven / Spring Boot ###
 logistics-api/target/
 logistics-api/.m2/
+microservices/*/target/
+microservices/target/
+**/target/
 
 # Compiled class file
 *.class

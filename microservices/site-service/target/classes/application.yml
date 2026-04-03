@@ -1,0 +1,97 @@
+# =============================================================================
+# Site Service — application configuration
+# =============================================================================
+
+spring:
+  application:
+    name: site-service
+
+  datasource:
+    url:      ${SITE_DB_URL:jdbc:postgresql://localhost:5432/site_db}
+    username: ${SITE_DB_USER:site_svc}
+    password: ${SITE_DB_PASSWORD:changeme}
+    hikari:
+      pool-name:         SiteHikariPool
+      maximum-pool-size: 10
+      minimum-idle:      2
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        default_schema: site
+
+  flyway:
+    schemas:           site
+    locations:         classpath:db/migration
+    baseline-on-migrate: true
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer:   org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        enable.idempotence: true
+        spring.json.add.type.headers: true
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 180000  # 3 minutes
+
+server:
+  port: ${SERVER_PORT:8082}
+  shutdown: graceful
+
+management:
+  server:
+    port: 8092
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLE_RATE:1.0}
+  zipkin:
+    tracing:
+      endpoint: ${ZIPKIN_ENDPOINT:http://localhost:9411/api/v2/spans}
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+feign:
+  client:
+    config:
+      company-service:
+        connectTimeout: 5000
+        readTimeout:    10000
+
+logging:
+  level:
+    root:                  INFO
+    com.logistics.site:    DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId:-},%X{spanId:-}] %logger{36} - %msg%n"

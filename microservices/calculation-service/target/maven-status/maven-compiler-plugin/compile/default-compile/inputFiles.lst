@@ -1,0 +1,12 @@
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\calculation-service\src\main\java\com\logistics\calculation\web\dto\CalculationResponse.java
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\calculation-service\src\main\java\com\logistics\calculation\domain\algorithm\BarycentreAlgorithm.java
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\calculation-service\src\main\java\com\logistics\calculation\web\dto\CalculationRequest.java
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\calculation-service\src\main\java\com\logistics\calculation\domain\algorithm\WeightedBarycentreAlgorithm.java
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\calculation-service\src\main\java\com\logistics\calculation\infrastructure\client\SiteServiceClient.java
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\calculation-service\src\main\java\com\logistics\calculation\web\controller\CalculationController.java
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\calculation-service\src\main\java\com\logistics\calculation\web\dto\SiteInput.java
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\calculation-service\src\main\java\com\logistics\calculation\CalculationServiceApplication.java
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\calculation-service\src\main\java\com\logistics\calculation\infrastructure\client\SiteServiceClientFallback.java
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\calculation-service\src\main\java\com\logistics\calculation\domain\model\LogisticsCenter.java
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\calculation-service\src\main\java\com\logistics\calculation\domain\algorithm\WeiszfeldAlgorithm.java
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\calculation-service\src\main\java\com\logistics\calculation\application\service\CalculationApplicationService.java

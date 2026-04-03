@@ -1,0 +1,196 @@
+# =============================================================================
+# API Gateway — route configuration, rate limiting, CORS, and observability
+#
+# External port: 8080
+# All microservice-to-microservice calls bypass the gateway (direct service URLs).
+# =============================================================================
+
+spring:
+  application:
+    name: api-gateway
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+
+  cloud:
+    gateway:
+      # -------------------------------------------------------------------------
+      # Global default filters applied to every route
+      # -------------------------------------------------------------------------
+      default-filters:
+        # Inject a unique request ID into every request for end-to-end tracing
+        - name: RequestRateLimiter
+          args:
+            redis-rate-limiter.replenishRate: 100    # tokens added per second
+            redis-rate-limiter.burstCapacity:  200   # max tokens in the bucket
+            key-resolver: "#{@ipKeyResolver}"        # keyed by client IP
+        - AddRequestHeader=X-Request-Id, ${spring.application.name}-${random.uuid}
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+
+      # -------------------------------------------------------------------------
+      # Routes
+      # -------------------------------------------------------------------------
+      routes:
+
+        # Company Service — /api/v1/companies/**
+        - id: company-service
+          uri: ${COMPANY_SERVICE_URL:http://company-service:8081}
+          predicates:
+            - Path=/api/v1/companies/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: company-cb
+                fallbackUri: forward:/fallback/service-unavailable
+            - name: Retry
+              args:
+                retries: 2
+                statuses: BAD_GATEWAY,SERVICE_UNAVAILABLE
+                methods: GET
+            - name: RequestSize
+              args:
+                maxSize: 5MB
+
+        # Site Service — /api/v1/sites/**
+        - id: site-service
+          uri: ${SITE_SERVICE_URL:http://site-service:8082}
+          predicates:
+            - Path=/api/v1/sites/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: site-cb
+                fallbackUri: forward:/fallback/service-unavailable
+            - name: Retry
+              args:
+                retries: 2
+                statuses: BAD_GATEWAY,SERVICE_UNAVAILABLE
+                methods: GET
+
+        # Calculation Service — /api/v1/calculations/**
+        - id: calculation-service
+          uri: ${CALC_SERVICE_URL:http://calculation-service:8083}
+          predicates:
+            - Path=/api/v1/calculations/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: calculation-cb
+                fallbackUri: forward:/fallback/service-unavailable
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 20   # Calculations are expensive
+                redis-rate-limiter.burstCapacity:  40
+                key-resolver: "#{@ipKeyResolver}"
+
+        # Dashboard Service — /api/v1/dashboard/**
+        - id: dashboard-service
+          uri: ${DASHBOARD_SERVICE_URL:http://dashboard-service:8084}
+          predicates:
+            - Path=/api/v1/dashboard/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: dashboard-cb
+                fallbackUri: forward:/fallback/service-unavailable
+
+        # Angular SPA — everything else served from the SPA container or Nginx
+        - id: angular-spa
+          uri: ${FRONTEND_URL:http://frontend:80}
+          predicates:
+            - Path=/**
+          filters:
+            - StripPrefix=0
+
+      # -------------------------------------------------------------------------
+      # CORS — allow Angular dev server and production domain
+      # -------------------------------------------------------------------------
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOriginPatterns:
+              - "http://localhost:4200"
+              - "http://localhost:80"
+              - "${CORS_ALLOWED_ORIGIN:https://logistics.yourdomain.com}"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
+
+# =============================================================================
+# Server
+# =============================================================================
+server:
+  port: ${SERVER_PORT:8080}
+  shutdown: graceful
+
+# =============================================================================
+# Actuator
+# =============================================================================
+management:
+  server:
+    port: 8090
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,gateway
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+    gateway:
+      enabled: true   # Exposes /actuator/gateway/routes for route inspection
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLE_RATE:1.0}
+  zipkin:
+    tracing:
+      endpoint: ${ZIPKIN_ENDPOINT:http://zipkin:9411/api/v2/spans}
+
+# =============================================================================
+# Resilience4j — circuit breakers for each downstream service
+# =============================================================================
+resilience4j:
+  circuitbreaker:
+    instances:
+      company-cb:
+        sliding-window-size:         10
+        failure-rate-threshold:      50
+        wait-duration-in-open-state: 10s
+      site-cb:
+        sliding-window-size:         10
+        failure-rate-threshold:      50
+        wait-duration-in-open-state: 10s
+      calculation-cb:
+        sliding-window-size:         10
+        failure-rate-threshold:      60   # Slightly more tolerant — calcs are slow
+        wait-duration-in-open-state: 15s
+      dashboard-cb:
+        sliding-window-size:         10
+        failure-rate-threshold:      50
+        wait-duration-in-open-state: 10s
+
+# =============================================================================
+# Logging
+# =============================================================================
+logging:
+  level:
+    root:                          INFO
+    com.logistics.gateway:         DEBUG
+    org.springframework.cloud.gateway: ${GATEWAY_LOG_LEVEL:INFO}
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId:-},%X{spanId:-}] %logger{36} - %msg%n"

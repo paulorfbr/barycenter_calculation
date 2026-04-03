@@ -1,0 +1,9 @@
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\shared\src\main\java\com\logistics\shared\domain\event\DomainEvent.java
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\shared\src\main\java\com\logistics\shared\domain\event\SiteRemovedEvent.java
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\shared\src\main\java\com\logistics\shared\domain\event\BarycentreCalculatedEvent.java
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\shared\src\main\java\com\logistics\shared\domain\event\CompanyStatusChangedEvent.java
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\shared\src\main\java\com\logistics\shared\domain\event\SiteAddedEvent.java
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\shared\src\main\java\com\logistics\shared\domain\vo\GeoCoordinate.java
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\shared\src\main\java\com\logistics\shared\web\ApiError.java
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\shared\src\main\java\com\logistics\shared\domain\event\CompanyCreatedEvent.java
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\shared\src\main\java\com\logistics\shared\domain\event\SiteUpdatedEvent.java

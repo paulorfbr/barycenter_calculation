@@ -1,0 +1,14 @@
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\company-service\src\main\java\com\logistics\company\web\controller\GlobalExceptionHandler.java
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\company-service\src\main\java\com\logistics\company\CompanyServiceApplication.java
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\company-service\src\main\java\com\logistics\company\web\dto\CompanyResponse.java
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\company-service\src\main\java\com\logistics\company\infrastructure\messaging\KafkaCompanyEventPublisher.java
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\company-service\src\main\java\com\logistics\company\web\controller\CompanyController.java
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\company-service\src\main\java\com\logistics\company\application\port\out\CompanyRepository.java
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\company-service\src\main\java\com\logistics\company\application\port\in\ManageCompanyUseCase.java
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\company-service\src\main\java\com\logistics\company\application\service\CompanyApplicationService.java
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\company-service\src\main\java\com\logistics\company\infrastructure\persistence\entity\CompanyEntity.java
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\company-service\src\main\java\com\logistics\company\web\dto\CompanyRequest.java
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\company-service\src\main\java\com\logistics\company\application\port\out\CompanyEventPublisher.java
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\company-service\src\main\java\com\logistics\company\infrastructure\persistence\repository\CompanyJpaRepository.java
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\company-service\src\main\java\com\logistics\company\domain\model\Company.java
+C:\Users\User\IdeaProjects\define-company-logistic-place\microservices\company-service\src\main\java\com\logistics\company\infrastructure\persistence\repository\CompanyRepositoryAdapter.java
