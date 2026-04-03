@@ -702,35 +702,35 @@ Specialized Screens:
 ### 9.1 Product Roadmap Overview
 
 ```
-📅 DEFINE COMPANY LOGISTIC PLACE - PRODUCT ROADMAP (24 MONTHS)
+📅 DEFINE COMPANY LOGISTIC PLACE - SME-FOCUSED ROADMAP (18 MONTHS)
 ═══════════════════════════════════════════════════════════════════════════════════
 
-Q1-Q2 2026 │ Q3-Q4 2026 │ Q1-Q2 2027 │ Q3-Q4 2027
-PHASE 1     │ PHASE 2     │ PHASE 3     │ PHASE 4
-FOUNDATION  │ INTELLIGENCE│ ENTERPRISE  │ AI/ML INNOVATION
+Q2-Q3 2026   │ Q4 2026-Q1 2027 │ Q2-Q3 2027
+PHASE 1      │ PHASE 2          │ PHASE 3
+SIMPLE START │ SMART FEATURES   │ SCALE & POLISH
 ════════════════════════════════════════════════════════════════════════════════════
 
-🏗️  CORE PLATFORM                    🧠 ADVANCED ALGORITHMS           🏢 ENTERPRISE SCALE              🤖 AI/ML CAPABILITIES
-├─ Microservices Architecture ✅     ├─ Weiszfeld Algorithm 🔄        ├─ Complete Desktop App 📋        ├─ Demand Forecasting 📋
-├─ Basic Barycenter Calc ✅         ├─ Advanced Analytics 🔄         ├─ API v2 📋                     ├─ Route Optimization 📋
-├─ Company Management ✅             ├─ Approval Workflow 🔄          ├─ Mobile Responsive 📋           ├─ Predictive Maintenance 📋
-├─ Site Management ✅                ├─ Event Streaming 🔄            ├─ ERP/CRM Connectors 📋         ├─ What-if Scenarios 📋
-├─ Angular Dashboard ✅              ├─ Redis Caching 🔄              ├─ SSO Integration 📋             ├─ ML Cost Models 📋
-├─ Docker Deployment ✅              ├─ Desktop App (Partial) 📋      ├─ Internationalization 📋       ├─ 3PL Marketplace 📋
-├─ JWT Authentication ✅             ├─ Bulk Import/Export 📋         ├─ Kubernetes Deploy 📋          ├─ Competitive Analytics 📋
-└─ Basic Monitoring ✅               └─ Circuit Breakers 📋           └─ Advanced Security 📋          └─ Multi-Region Deploy 📋
+🎯 SIMPLE & EFFECTIVE                🚀 USER-FRIENDLY GROWTH         📈 SUSTAINABLE SUCCESS
+├─ Core Web App ✅                  ├─ Advanced Algorithm 🔄         ├─ Mobile-Friendly 📋
+├─ Basic Calculations ✅            ├─ Better UX/UI 🔄               ├─ Self-Service Onboarding 📋
+├─ Company/Site Management ✅       ├─ Export/Import Features 📋     ├─ Video Tutorials 📋
+├─ Simple Dashboard ✅              ├─ Email Notifications 📋        ├─ API for Simple Integrations 📋
+├─ Affordable Pricing ✅            ├─ Customer Success Tools 📋     ├─ Referral Program 📋
+├─ Free Trial System ✅             ├─ Performance Optimization 📋   ├─ Community Support 📋
+└─ Basic Support ✅                 └─ Usage Analytics 📋            └─ Partner Ecosystem 📋
 
-📊 KEY METRICS TARGETS
-Performance    │ <100ms simple calc ✅       │ <200ms all endpoints 🎯      │ <100ms all endpoints 🎯      │ <50ms all endpoints 🎯
-Scalability    │ 100+ users ✅               │ 500+ users 🎯                │ 1000+ users 🎯               │ 5000+ users 🎯
-Sites          │ 100+ sites ✅               │ 500+ sites 🎯                │ 1000+ sites 🎯              │ 10000+ sites 🎯
-Availability   │ 99% uptime ✅                │ 99.9% uptime 🎯              │ 99.95% uptime 🎯             │ 99.99% uptime 🎯
-Customers      │ 5+ pilot customers ✅        │ 25+ customers 🎯             │ 50+ customers 🎯             │ 200+ customers 🎯
+📊 SME-FOCUSED METRICS
+Performance    │ <200ms calculations ✅       │ <100ms calculations 🎯       │ <50ms calculations 🎯
+Simplicity     │ 5-min signup process ✅      │ 2-min signup process 🎯      │ 1-min signup process 🎯
+Sites Support  │ 50+ sites per customer ✅    │ 200+ sites per customer 🎯   │ 500+ sites per customer 🎯
+Affordability  │ $99-699/month pricing ✅     │ Pay-per-use option 🎯        │ Volume discounts 🎯
+Customers      │ 20+ SME customers ✅         │ 100+ SME customers 🎯        │ 500+ SME customers 🎯
 
-🎯 BUSINESS MILESTONES
-Revenue        │ Pilot Revenue $100K ✅       │ ARR $500K 🎯                 │ ARR $2M 🎯                   │ ARR $10M 🎯
-Team Size      │ 8 FTE ✅                     │ 12 FTE 🎯                    │ 18 FTE 🎯                    │ 30 FTE 🎯
-Market         │ MVP Product-Market Fit ✅    │ Proven ROI Case Studies 🎯   │ Market Leader Position 🎯    │ Global Expansion 🎯
+🎯 BUSINESS MILESTONES (SME-Realistic)
+Revenue        │ $25K MRR ✅                  │ $100K MRR 🎯                 │ $400K MRR 🎯
+Customer Size  │ Avg 15 sites/customer ✅     │ Avg 25 sites/customer 🎯     │ Avg 40 sites/customer 🎯
+Team Size      │ 5 FTE (lean team) ✅         │ 8 FTE 🎯                     │ 12 FTE 🎯
+Market         │ Regional SME Focus ✅         │ Multi-Region SME 🎯          │ International SME 🎯
 
 Legend: ✅ Completed │ 🔄 In Progress │ 📋 Planned │ 🎯 Target
 ═══════════════════════════════════════════════════════════════════════════════════
@@ -776,99 +776,77 @@ Sprint 15       Sprint 16       Sprint 17       Sprint 18       Sprint 19       
 
 ### 9.4 Development Phases (Detailed)
 
-#### Phase 1: Core Platform (Months 1-6) - **CURRENT**
-**Objectives**: Establish foundational platform with basic optimization capabilities
+#### Phase 1: Simple & Effective Platform (Months 1-6) - **CURRENT**
+**Objectives**: Launch a simple, affordable platform that delivers immediate value to SMEs
 
 **Features Delivered**:
-- ✅ Microservices architecture with API Gateway
-- ✅ Company and site management functionality
-- ✅ Simple weighted barycenter algorithm
-- ✅ Basic Angular dashboard with Leaflet mapping
-- ✅ Docker containerization and local development environment
-- ✅ PostgreSQL multi-schema setup with audit trails
-- ✅ JWT authentication and basic RBAC
+- ✅ Clean web interface with easy navigation
+- ✅ Company and site management (simplified forms)
+- ✅ Fast barycenter calculations (<200ms)
+- ✅ Interactive map showing optimal locations
+- ✅ Basic dashboard with key metrics
+- ✅ Free 30-day trial with instant signup
+- ✅ Affordable pricing starting at $99/month
 
-**Technical Milestones**:
-- ✅ CI/CD pipeline with GitHub Actions
-- ✅ Code coverage >80% across all services
-- ✅ API documentation with Swagger/OpenAPI
-- ✅ Basic monitoring with Prometheus/Grafana
+**Technical Achievements**:
+- ✅ Reliable web application with 99% uptime
+- ✅ Simple authentication and user management
+- ✅ Mobile-friendly responsive design
+- ✅ Basic export functionality (PDF, CSV)
 
 **Success Criteria**:
-- ✅ Platform handles 100+ concurrent users
-- ✅ Simple calculations complete in <100ms
-- ✅ Core workflows functional end-to-end
+- ✅ 5-minute signup process
+- ✅ Calculations complete in <200ms
+- ✅ 20+ paying SME customers
+- ✅ Positive user feedback (>4.0/5)
 
-#### Phase 2: Advanced Algorithms & Analytics (Months 7-12) - **IN PROGRESS**
-**Objectives**: Add mathematical sophistication and comprehensive business intelligence
+#### Phase 2: Smart Features & User Experience (Months 7-12) - **IN PROGRESS**
+**Objectives**: Enhance usability and add features that SMEs actually need
 
 **Features in Development**:
-- 🔄 Weiszfeld iterative algorithm with convergence optimization
-- 🔄 Advanced analytics dashboard with trend analysis
-- 🔄 Calculation result approval workflow
-- 🔄 Enhanced geographic visualization
-- 🔄 Kafka event streaming for real-time updates
-- 🔄 Redis caching layer for performance optimization
+- 🔄 Advanced Weiszfeld algorithm for better accuracy
+- 🔄 Improved user interface with better usability
+- 🔄 Email notifications for calculation results
+- 🔄 Better data import/export (Excel, CSV)
+- 🔄 Usage analytics for customers
+- 🔄 Customer success tools and tutorials
 
 **Planned Features**:
-- 📋 JavaFX desktop application (first 4 screens)
-- 📋 Bulk site import/export functionality
-- 📋 Advanced reporting and export capabilities
-- 📋 Circuit breaker implementation for resilience
-- 📋 Enhanced security with MFA support
-
-**Technical Goals**:
-- Target <200ms P95 latency for all endpoints
-- Implement distributed tracing with Zipkin
-- Add comprehensive integration testing
-- AWS deployment with Terraform automation
+- 📋 Pay-per-calculation option for light users
+- 📋 Basic mobile app or mobile-optimized web
+- 📋 Simple integrations (QuickBooks, basic APIs)
+- 📋 Video tutorials and self-help resources
+- 📋 Customer referral program
 
 **Success Criteria**:
-- Platform supports 500+ concurrent users
-- Weiszfeld calculations complete in <500ms
-- Dashboard loads in <300ms
-- 99.9% uptime achievement
+- Target <100ms calculations
+- 100+ active SME customers
+- 2-minute signup process
+- >90% customer satisfaction
 
-#### Phase 3: Enterprise Integration & Mobile (Months 13-18) - **PLANNED**
-**Objectives**: Enable enterprise adoption with comprehensive integration capabilities
+#### Phase 3: Scale & Sustainable Growth (Months 13-18) - **PLANNED**
+**Objectives**: Build sustainable business with excellent customer experience
 
 **Planned Features**:
-- Complete JavaFX desktop application (all 13 screens)
-- REST API v2 with enhanced capabilities
-- Mobile-responsive web interface optimization
-- ERP/CRM integration templates and connectors
-- Advanced user management with SSO support
-- Multi-language internationalization (i18n)
+- Self-service onboarding with guided tutorials
+- Community support forums and user groups
+- Partner program for local consultants
+- Simple API for basic integrations
+- Multi-language support (Spanish, French)
+- Volume pricing discounts for growing customers
 
-**Technical Enhancements**:
-- Kubernetes deployment for production scaling
-- Advanced monitoring with custom business metrics
-- Performance optimization for large datasets (1000+ sites)
-- Enhanced security with container hardening
-- Disaster recovery and backup automation
+**Business Focus**:
+- Focus on customer success and retention
+- Expand to international SME markets
+- Build partner ecosystem for local support
+- Develop case studies and success stories
+- Optimize for profitability and growth
 
 **Success Criteria**:
-- Support for 1000+ sites per company
-- Mobile interface usability score >4.5/5
-- Integration deployment time <1 day
-- Customer onboarding time <1 week
-
-#### Phase 4: AI/ML & Predictive Optimization (Months 19-24) - **FUTURE**
-**Objectives**: Advance platform with artificial intelligence and predictive capabilities
-
-**Innovation Features**:
-- Demand forecasting with machine learning models
-- Route optimization integration (TSP solver)
-- Predictive maintenance for logistics centers
-- What-if scenario modeling with multiple variables
-- Real-time notification system with WebSockets
-
-**Advanced Capabilities**:
-- Multi-regional deployment with data residency
-- Advanced analytics with custom ML models
-- Third-party logistics (3PL) marketplace integration
-- Cost modeling and ROI prediction algorithms
-- Competitive benchmarking and industry analytics
+- 500+ active customers
+- <2% monthly churn rate
+- 1-minute signup process
+- Profitable operations with positive unit economics
 
 ### 9.2 Resource Requirements
 
@@ -1009,23 +987,24 @@ Scaling Team (Phases 3-4):
 
 ## 11. Success Criteria & Measurement
 
-### 11.1 Business KPIs
+### 11.1 Business KPIs (SME-Focused)
 
 #### Customer Impact Metrics
 | KPI | Baseline | 6 Month Target | 12 Month Target | Measurement Method |
 |-----|----------|----------------|-----------------|-------------------|
-| **Customer Cost Reduction** | N/A | 15% average | 20% average | Customer surveys, before/after analysis |
-| **Platform Adoption** | 0 companies | 25 companies | 50 companies | Active user database |
-| **Sites Under Management** | 0 sites | 500 sites | 1,000 sites | Platform analytics |
-| **Monthly Calculations** | 0 calculations | 50 calculations | 100 calculations | Usage analytics |
-| **Customer Satisfaction** | N/A | >4.0/5 | >4.3/5 | Quarterly NPS surveys |
-| **Customer Retention** | N/A | >90% | >95% | Churn analysis |
+| **Customer Cost Savings** | N/A | 10% average | 15% average | Customer surveys, ROI tracking |
+| **SME Customers** | 0 companies | 50 companies | 200 companies | Active subscriber database |
+| **Sites Under Management** | 0 sites | 750 sites | 3,000 sites | Platform analytics (avg 15 sites/customer) |
+| **Monthly Calculations** | 0 calculations | 200 calculations | 1,000 calculations | Usage analytics |
+| **Customer Satisfaction** | N/A | >4.2/5 | >4.5/5 | Quarterly surveys |
+| **Customer Retention** | N/A | >85% | >90% | Monthly churn analysis |
 
-#### Revenue and Growth Metrics
-- **Annual Recurring Revenue (ARR)**: Target $1M ARR by end of Year 1
-- **Customer Lifetime Value (LTV)**: Target >3x Customer Acquisition Cost (CAC)
-- **Monthly Recurring Revenue Growth**: 20% month-over-month target
-- **Logo Growth**: 10+ new enterprise customers per quarter
+#### Revenue and Growth Metrics (SME-Realistic)
+- **Monthly Recurring Revenue (MRR)**: Target $100K MRR by end of Year 1
+- **Average Revenue Per Customer**: $300-400/month (sustainable for SMEs)
+- **Customer Acquisition Cost (CAC)**: <$500 (3x LTV ratio)
+- **Monthly Customer Growth**: 15-25 new SME customers per month
+- **Pricing Flexibility**: 70% on monthly plans, 30% annual discounts
 
 ### 11.2 Technical KPIs
 
@@ -1173,63 +1152,76 @@ Measurement Stack:
 
 ### 12.3 Market Positioning Strategy
 
-#### Target Market Segmentation
+#### Target Market Segmentation (SME-Focused)
 
-**Primary Target**: Mid-Market Logistics Companies (100-1000 sites)
-*Positioning*: "Enterprise-grade optimization at mid-market prices"
-*Value Prop*: 15-25% cost reduction without enterprise complexity
+**Primary Target**: Small-Medium Logistics Companies (10-100 sites)
+*Positioning*: "Professional logistics optimization for growing businesses"
+*Value Prop*: 10-20% cost reduction with simple, affordable tools
 
-**Secondary Target**: Large Enterprise Logistics Operations (1000+ sites)
-*Positioning*: "Specialized optimization complementing existing TMS"
-*Value Prop*: Mathematical precision for strategic facility planning
+**Secondary Target**: Regional Distribution Companies (5-50 sites)
+*Positioning*: "Easy-to-use location optimization without complexity"
+*Value Prop*: Quick setup, immediate results, pay-as-you-grow pricing
 
-**Tertiary Target**: 3PL Providers Managing Multiple Clients
-*Positioning*: "Multi-tenant optimization for competitive advantage"
-*Value Prop*: Optimize across multiple client networks simultaneously
+**Tertiary Target**: Local 3PL and Freight Forwarders (20-200 sites)
+*Positioning*: "Competitive advantage through smart location planning"
+*Value Prop*: Professional optimization tools at small business prices
 
-#### Go-to-Market Strategy
+#### Go-to-Market Strategy (SME-Centric)
 
-**Phase 1: Direct Sales to Early Adopters**
-- Target forward-thinking logistics managers seeking competitive advantage
-- Focus on companies with visible optimization opportunities
-- Pilot programs with guaranteed ROI or money-back guarantee
+**Phase 1: Self-Service and Digital Marketing**
+- Online sign-up with instant access and free trial
+- Video tutorials and self-onboarding for quick adoption
+- Digital marketing targeting small logistics businesses
+- Simple pricing with transparent, predictable costs
 
-**Phase 2: Partner Channel Development**
-- Logistics consulting firms for implementation services
-- Technology integrators for ERP/CRM connectivity
-- Industry associations for thought leadership and credibility
+**Phase 2: Partner Network for Local Markets**
+- Regional logistics consultants and business advisors
+- Small business technology providers
+- Industry trade associations and local business networks
+- Referral programs with existing customers
 
-**Phase 3: Platform Ecosystem**
-- Third-party developer APIs for custom integrations
-- Marketplace for industry-specific optimization modules
-- Training and certification program for implementation partners
+**Phase 3: Ecosystem Growth**
+- App marketplace with simple add-ons
+- Integration with popular SME tools (QuickBooks, small ERP systems)
+- Community support forums and user groups
 
-### 12.4 Pricing Strategy
+### 12.4 Pricing Strategy (SME-Affordable)
 
-#### Value-Based Pricing Model
+#### Simple, Transparent Pricing Model
 
-**Starter Plan**: $5,000/month
-- Up to 100 consumption sites
+**Starter Plan**: $99/month
+- Up to 10 consumption sites
 - Basic algorithm (weighted centroid)
-- Standard dashboard and reporting
-- Email support
+- Web dashboard access
+- Email support and video tutorials
+- **Free 30-day trial**
 
-**Professional Plan**: $15,000/month
-- Up to 500 consumption sites
+**Growth Plan**: $299/month
+- Up to 50 consumption sites
 - Advanced algorithms (Weiszfeld optimization)
-- Custom analytics and export capabilities
-- Phone and email support with dedicated success manager
+- Export capabilities and basic reporting
+- Priority email support
+- **Most popular for SMEs**
 
-**Enterprise Plan**: Custom pricing
-- Unlimited consumption sites
-- White-label capabilities
-- Custom integrations and professional services
-- 24/7 support with guaranteed SLA
+**Professional Plan**: $699/month
+- Up to 200 consumption sites
+- All algorithms and features
+- Advanced analytics and custom reports
+- Phone + email support
+- **For growing regional companies**
 
-#### Competitive Pricing Analysis
-- **15-30% below** enterprise TMS solutions for equivalent functionality
-- **Premium pricing** vs. basic routing software due to advanced algorithms
-- **ROI-justified pricing** where customer savings exceed platform costs
+**Pay-Per-Use Option**: $0.50 per calculation
+- No monthly commitment
+- Perfect for occasional use
+- All algorithms available
+- Self-service support only
+
+#### SME-Focused Pricing Philosophy
+- **Affordable monthly costs** comparable to business software subscriptions
+- **No setup fees** or long-term contracts required
+- **Transparent pricing** with no hidden costs or per-user fees
+- **Flexible scaling** - upgrade/downgrade anytime
+- **ROI in first month** - typical customer saves $2,000+ monthly in transport costs
 
 ### 12.5 Competitive Response Strategy
 
