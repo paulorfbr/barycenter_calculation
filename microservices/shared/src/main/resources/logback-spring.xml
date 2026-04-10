@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <springProfile name="!prod">
+        <!-- Development and test profiles -->
+        <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+        <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+
+        <appender name="STRUCTURED_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+                <providers>
+                    <timestamp/>
+                    <logLevel/>
+                    <loggerName/>
+                    <message/>
+                    <mdc/>
+                    <arguments/>
+                    <stackTrace/>
+                    <pattern>
+                        <pattern>
+                            {
+                                "service": "${spring.application.name:-unknown}",
+                                "version": "${application.version:-unknown}",
+                                "environment": "${spring.profiles.active:-default}",
+                                "trace_id": "%X{traceId:-}",
+                                "span_id": "%X{spanId:-}"
+                            }
+                        </pattern>
+                    </pattern>
+                </providers>
+            </encoder>
+        </appender>
+
+        <root level="INFO">
+            <appender-ref ref="STRUCTURED_CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="prod">
+        <!-- Production profile with structured JSON logging -->
+        <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+                <providers>
+                    <timestamp/>
+                    <logLevel/>
+                    <loggerName/>
+                    <message/>
+                    <mdc/>
+                    <arguments/>
+                    <stackTrace>
+                        <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                            <maxDepthPerThrowable>30</maxDepthPerThrowable>
+                            <maxLength>2048</maxLength>
+                            <shortenedClassNameLength>20</shortenedClassNameLength>
+                            <excludes>sun\.reflect\..*|java\.lang\.reflect\..*|org\.springframework\..*</excludes>
+                        </throwableConverter>
+                    </stackTrace>
+                    <pattern>
+                        <pattern>
+                            {
+                                "service": "${spring.application.name:-unknown}",
+                                "version": "${application.version:-unknown}",
+                                "environment": "${spring.profiles.active:-default}",
+                                "hostname": "${HOSTNAME:-unknown}",
+                                "trace_id": "%X{traceId:-}",
+                                "span_id": "%X{spanId:-}",
+                                "user_id": "%X{userId:-}",
+                                "company_id": "%X{companyId:-}",
+                                "operation_type": "%X{operationType:-}"
+                            }
+                        </pattern>
+                    </pattern>
+                </providers>
+            </encoder>
+        </appender>
+
+        <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>logs/${spring.application.name:-application}.log</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>logs/${spring.application.name:-application}.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+                <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                    <maxFileSize>100MB</maxFileSize>
+                </timeBasedFileNamingAndTriggeringPolicy>
+                <maxHistory>30</maxHistory>
+                <totalSizeCap>1GB</totalSizeCap>
+            </rollingPolicy>
+            <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+                <providers>
+                    <timestamp/>
+                    <logLevel/>
+                    <loggerName/>
+                    <message/>
+                    <mdc/>
+                    <arguments/>
+                    <stackTrace/>
+                    <pattern>
+                        <pattern>
+                            {
+                                "service": "${spring.application.name:-unknown}",
+                                "version": "${application.version:-unknown}",
+                                "environment": "${spring.profiles.active:-default}",
+                                "hostname": "${HOSTNAME:-unknown}",
+                                "trace_id": "%X{traceId:-}",
+                                "span_id": "%X{spanId:-}",
+                                "user_id": "%X{userId:-}",
+                                "company_id": "%X{companyId:-}",
+                                "operation_type": "%X{operationType:-}"
+                            }
+                        </pattern>
+                    </pattern>
+                </providers>
+            </encoder>
+        </appender>
+
+        <root level="INFO">
+            <appender-ref ref="STDOUT"/>
+            <appender-ref ref="FILE"/>
+        </root>
+    </springProfile>
+
+    <!-- Specific logger configurations -->
+    <logger name="com.logistics" level="DEBUG" additivity="false">
+        <appender-ref ref="STRUCTURED_CONSOLE"/>
+    </logger>
+
+    <logger name="org.springframework.security" level="DEBUG" additivity="false">
+        <appender-ref ref="STRUCTURED_CONSOLE"/>
+    </logger>
+
+    <logger name="org.springframework.web" level="DEBUG" additivity="false">
+        <appender-ref ref="STRUCTURED_CONSOLE"/>
+    </logger>
+
+    <!-- Reduce noise from third-party libraries -->
+    <logger name="org.springframework.boot.autoconfigure" level="WARN"/>
+    <logger name="org.hibernate.SQL" level="DEBUG"/>
+    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
+    <logger name="io.micrometer" level="WARN"/>
+    <logger name="io.lettuce.core" level="WARN"/>
+
+    <!-- Constitution requirement: Comprehensive observability -->
+    <turboFilter class="ch.qos.logback.classic.turbo.MarkerFilter">
+        <Name>SECURITY_AUDIT</Name>
+        <OnMatch>ACCEPT</OnMatch>
+        <OnMismatch>NEUTRAL</OnMismatch>
+    </turboFilter>
+
+    <turboFilter class="ch.qos.logback.classic.turbo.MarkerFilter">
+        <Name>PERFORMANCE_AUDIT</Name>
+        <OnMatch>ACCEPT</OnMatch>
+        <OnMismatch>NEUTRAL</OnMismatch>
+    </turboFilter>
+</configuration>

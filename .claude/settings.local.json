@@ -40,7 +40,11 @@
       "Bash(find /c/Users/User/IdeaProjects/define-company-logistic-place -type f -name *.md -o -name *.txt -o -name pom.xml -o -name README*)",
       "Bash(find /c/Users/User/IdeaProjects/define-company-logistic-place -type f \\\\\\(-name *requirement* -o -name *security* -o -name *integration* -o -name *compliance* \\\\\\))",
       "Bash(find /c/Users/User/IdeaProjects/define-company-logistic-place/src/ui/angular-app/src -type f -name *.ts)",
-      "Bash(grep -E \"\\\\.\\(java|ts|js\\)$\")"
+      "Bash(grep -E \"\\\\.\\(java|ts|js\\)$\")",
+      "Bash(powershell -ExecutionPolicy Bypass -File .specify/scripts/powershell/check-prerequisites.ps1 -Json -PathsOnly)",
+      "Bash(powershell -ExecutionPolicy Bypass -File .specify/scripts/powershell/check-prerequisites.ps1 -Json)",
+      "Bash(powershell -ExecutionPolicy Bypass -File .specify/scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks)",
+      "Bash(grep -E \"\\(Dockerfile|pom\\\\.xml|package\\\\.json|\\\\.tf$\\)\")"
     ],
     "deny": [
       "Read(./.env)",
