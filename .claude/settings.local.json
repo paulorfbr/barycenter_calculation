@@ -44,7 +44,8 @@
       "Bash(powershell -ExecutionPolicy Bypass -File .specify/scripts/powershell/check-prerequisites.ps1 -Json -PathsOnly)",
       "Bash(powershell -ExecutionPolicy Bypass -File .specify/scripts/powershell/check-prerequisites.ps1 -Json)",
       "Bash(powershell -ExecutionPolicy Bypass -File .specify/scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks)",
-      "Bash(grep -E \"\\(Dockerfile|pom\\\\.xml|package\\\\.json|\\\\.tf$\\)\")"
+      "Bash(grep -E \"\\(Dockerfile|pom\\\\.xml|package\\\\.json|\\\\.tf$\\)\")",
+      "Bash(.specify/scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks)"
     ],
     "deny": [
       "Read(./.env)",
